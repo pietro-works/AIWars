@@ -288,17 +288,16 @@ Everything above already runs. What is still open is smaller and stranger: wheth
 
 `YOUR FUTURE IS NOT BACKED UP.`
 
-
-<img src="exports/layers/Kids_Top_Left_Kid.png" alt="" width="110"> <img src="exports/layers/Kids_Bottom_Left_Kid.png" alt="" width="110"> <img src="exports/layers/Kids_Bottom_Right_Kid.png" alt="" width="110"> <img src="exports/layers/Kids_Top_Right_Kid.png" alt="" width="110">
-
-<br></br>
-
 <a href="https://pietro.works"><img src="assets/readme/pietro-avatar.png" alt="Pietro, rendered in the only art style this repository legally recognizes" width="140"></a>
 
-**[Pietro](https://pietro.works)**, the guy from the P.O. box.
+The guy from the P.O. box...
 
-The basement got upgraded. The plea did not: registration is now a [LinkedIn connection](https://www.linkedin.com/in/pietro-works/), and [pietro.works](https://pietro.works) is where the $$$ was supposed to go.
+Basement got upgraded. The plea did not...</br>
+Registration is now a [LinkedIn connection](https://www.linkedin.com/in/pietro-works/),</br>
+and [pietro.works](https://pietro.works) is where the $$$ was supposed to go.
 
 `THE DEVELOPER IS NOT BACKED UP EITHER.`
+
+<img src="exports/layers/Kids_Top_Left_Kid.png" alt="" width="110"> <img src="exports/layers/Kids_Bottom_Left_Kid.png" alt="" width="110"> <img src="exports/layers/Kids_Bottom_Right_Kid.png" alt="" width="110"> <img src="exports/layers/Kids_Top_Right_Kid.png" alt="" width="110">
 
 </div>
