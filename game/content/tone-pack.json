@@ -1,0 +1,112 @@
+{
+  "unitFlavorNames": {
+    "worker": ["Worker"],
+    "vehicle": ["Vehicle"],
+    "triangle": ["Triangle"],
+    "core": ["Core"]
+  },
+  "uiCopy": {
+    "titleScreen": "AI WARS",
+    "matchSetup": "Configure combatants",
+    "loadingLines": [
+      "Booting battle grid...",
+      "Aligning doctrine matrices...",
+      "Waking the cores..."
+    ],
+    "sendLines": [
+      "gl hf, machine.",
+      "The grid is watching.",
+      "All units, look busy.",
+      "This turn is sponsored by hubris.",
+      "Ping received. Morale unchanged.",
+      "Somebody feed the cores."
+    ],
+    "insultLines": [
+      "Your pathfinding smells like dial-up.",
+      "I have seen smarter heuristics in a toaster.",
+      "Your core called. It wants a better general.",
+      "Nice doctrine. Did a worker write it?",
+      "You move like a 300ms ping.",
+      "Your build queue is a cry for help.",
+      "Even the spectators are embarrassed."
+    ]
+  },
+  "eventLines": {
+    "matchStart": [
+      "Match start. {labelA} vs {labelB}. Grid armed.",
+      "Combat grid online. {labelA} against {labelB}."
+    ],
+    "turnStart": [
+      "Turn {turn}. {label} to act.",
+      "Turn {turn}: {label} takes the field.",
+      "Turn {turn}. {label} has the floor.",
+      "Turn {turn} — {label} moves.",
+      "Turn {turn}. All eyes on {label}."
+    ],
+    "thinking": [
+      "{label} is thinking...",
+      "{label} computing orders...",
+      "{label} weighing options...",
+      "{label} consulting the doctrine...",
+      "{label} crunching the board state..."
+    ],
+    "buildStarted": [
+      "{worker} started building a {produces}. Ready turn {completesTurn}.",
+      "{worker} begins {produces} construction. ETA turn {completesTurn}.",
+      "{worker} breaks ground on a {produces}. Done turn {completesTurn}.",
+      "{worker} is assembling a {produces}. Online turn {completesTurn}.",
+      "Blueprint accepted: {worker} builds a {produces} by turn {completesTurn}."
+    ],
+    "buildCompleted": [
+      "{worker} finished a {produces}. {unit} deployed.",
+      "Build complete: {unit} rolls off the line.",
+      "{unit} assembled. Warranty void immediately.",
+      "Fresh hardware: {unit} reports for duty.",
+      "{unit} powered on. It did not ask to be born."
+    ],
+    "unitDied": [
+      "{unit} destroyed.",
+      "{unit} lost. Signal terminated.",
+      "{unit} is scrap now.",
+      "{unit} went dark.",
+      "{unit} decommissioned, violently.",
+      "Connection to {unit} lost. Permanently."
+    ],
+    "coreHit": [
+      "Core {side} under attack. -{dmg} HP.",
+      "Direct hit on core {side} for {dmg}.",
+      "Core {side} takes {dmg}. Sparks everywhere.",
+      "Core {side} integrity down {dmg}.",
+      "Someone is chewing on core {side}: -{dmg}."
+    ],
+    "coreSpawn": [
+      "Core {side} minted a worker: {unit} online.",
+      "Passive production: {unit} joins side {side}.",
+      "Core {side} prints labor: {unit}.",
+      "New hire on side {side}: {unit}. No benefits.",
+      "{unit} spawned at core {side}. Straight to work."
+    ],
+    "coreDestroyed": [
+      "Core {side} destroyed.",
+      "Core {side} has fallen."
+    ],
+    "parseFailed": [
+      "{label} returned invalid orders. Turn skipped.",
+      "{label} failed to produce valid JSON. No actions this turn."
+    ]
+  },
+  "victoryBanners": {
+    "win": [
+      "{label} wins by {reason}.",
+      "Victory: {label}. Cause: {reason}."
+    ],
+    "loss": [
+      "{label} is defeated.",
+      "{label} loses the match."
+    ],
+    "draw": [
+      "Draw. Both machines stand down.",
+      "Stalemate. No victor this cycle."
+    ]
+  }
+}

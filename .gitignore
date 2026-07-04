@@ -1,0 +1,6 @@
+work/
+.change-log.tsv
+.company/
+.claude/
+.DS_Store
+**/.DS_Store

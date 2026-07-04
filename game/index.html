@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI WARS</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23000'/%3E%3Crect x='2' y='2' width='5' height='5' fill='%2300f1f0'/%3E%3Crect x='9' y='9' width='5' height='5' fill='%23f70395'/%3E%3Crect x='9' y='2' width='5' height='5' fill='%23111'/%3E%3Crect x='2' y='9' width='5' height='5' fill='%23111'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="stage">
+  <canvas id="board" class="rg"></canvas>
+
+  <div id="avA" class="rg avatar"><canvas></canvas></div>
+  <div id="scoreA" class="rg score">
+    <span class="nm cyan" id="nameA">CORE A: HOT CYAN</span>
+    <div class="hprow"><canvas class="heart" data-heart="a" width="14" height="12"></canvas>
+      <div class="hpbar"><div class="hpfill a" id="hpfillA" style="width:100%"></div></div>
+      <span class="hpnum cyan" id="hpnumA">200/200</span></div>
+  </div>
+
+  <div id="logo" class="rg"><img src="../exports/layers/Hero_Logo.png" alt="AI WARS"></div>
+
+  <div id="scoreB" class="rg score" style="align-items:flex-end; text-align:right">
+    <span class="nm magenta" id="nameB">CORE B: NEON MAGENTA</span>
+    <div class="hprow"><canvas class="heart" data-heart="b" width="14" height="12"></canvas>
+      <div class="hpbar"><div class="hpfill b" id="hpfillB" style="width:100%"></div></div>
+      <span class="hpnum magenta" id="hpnumB">200/200</span></div>
+  </div>
+  <div id="avB" class="rg avatar"><canvas></canvas></div>
+
+  <div id="deploy" class="rg">
+    <span class="hdr">OPERATIONS</span>
+    <div id="intel">
+      <div class="stat"><b class="lime">ORDERS</b><span class="v" id="intelorders">--</span></div>
+      <div class="stat"><b class="amber">CORE MINTS IN</b><span class="v amber" id="intelmint">--</span></div>
+      <div class="stat igrow"><b class="lime">BUILD QUEUE</b><div id="intelqueue"><div class="qrow dim">NO ACTIVE BUILDS</div></div></div>
+      <div class="stat"><b class="lime">UNIT</b><div id="intelsel" class="dim">--</div></div>
+    </div>
+    <span class="hdr">DEPLOY</span>
+    <div class="cards">
+      <div class="card disabled" data-produce="worker"><canvas data-thumb="worker_default"></canvas><div><div class="nm cyan">WORKER</div><div class="cost amber">AUTO</div></div></div>
+      <div class="card" data-produce="vehicle"><canvas data-thumb="vehicle_default"></canvas><div><div class="nm cyan">VEHICLE</div><div class="cost amber"><i class="coin"></i>5 TURNS</div></div></div>
+      <div class="card" data-produce="triangle"><canvas data-thumb="triangle_default"></canvas><div><div class="nm cyan">TRIANGLE</div><div class="cost amber"><i class="coin"></i>3 TURNS</div></div></div>
+    </div>
+    <div id="firepolicy">
+      <div class="fprow"><span class="fplbl">VEH</span><span class="fpopt on" data-cls="vehicle" data-mode="spread">SPREAD</span><span class="fpopt" data-cls="vehicle" data-mode="focus">FOCUS</span></div>
+      <div class="fprow"><span class="fplbl">TRI</span><span class="fpopt on" data-cls="triangle" data-mode="spread">SPREAD</span><span class="fpopt" data-cls="triangle" data-mode="focus">FOCUS</span></div>
+    </div>
+    <div id="deploybtn" class="off">DEPLOY</div>
+  </div>
+
+  <div id="status" class="rg">
+    <div class="hdr">SYSTEM STATUS</div>
+    <div class="stat"><b class="cyan">A FORCES:</b><span class="v cyan" id="aforce">--</span></div>
+    <div class="stat"><b class="magenta">B FORCES:</b><span class="v magenta" id="bforce">--</span></div>
+    <div class="stat"><b class="amber">LAST PARSE:</b><span class="v amber" id="parsestat">--</span></div>
+    <div class="mut"><b class="lime">SYS FEED</b><span id="sysnote">- STANDBY</span></div>
+  </div>
+
+  <div id="emotes" class="rg">
+    <div class="hdr">EMOTES</div>
+    <div id="emotegrid">
+      <div class="emote" data-etext="?"><canvas data-emote="think" width="24" height="24"></canvas></div>
+      <div class="emote cyan vt" data-etext="Zzz">(Zzz)</div>
+      <div class="emote" data-etext="plop"><canvas data-emote="poop" width="24" height="24"></canvas></div>
+      <div class="emote" data-etext="x_x"><canvas data-emote="skull" width="24" height="24"></canvas></div>
+      <div class="emote" data-etext="!!!"><canvas data-emote="fire" width="24" height="24"></canvas></div>
+      <div class="emote vt" data-etext="&#175;\_(ツ)_/&#175;">&#175;&#92;_(ツ)_/&#175;</div>
+      <div class="emote magenta" data-etext="GG">GG</div>
+      <div class="emote" data-etext="WP" style="color:#e6a0e0">WP</div>
+    </div>
+  </div>
+
+  <div id="chat" class="rg">
+    <div id="chattitle">TERMINAL.EXE - SECURE CONNECTION ENCRYPTED</div>
+    <div id="chatbody">
+      <div id="chattext"></div>
+      <div id="chatside"><canvas id="trollcrt"></canvas>
+        <div id="chatbtns"><span id="btnsend">SEND</span><span id="btninsult">INSULT</span><span id="btnemote">EMOTE</span></div></div>
+    </div>
+  </div>
+
+  <div id="endturn" class="rg"><span class="btn off" id="endturnbtn">END TURN</span><span class="tc" id="turncounter">TURN 1 / 30</span></div>
+
+  <img id="chrome" src="../assets/game plate transparent.png" alt="">
+  <div id="crt"><div id="scan"></div><div id="vig"></div><div id="refresh"></div></div>
+  <!-- intro: splash iframe on top, black veil under it for the slow bg reveal.
+       ui.js runIntro() drives the sequence and removes both. -->
+
+
+  <!-- ===== SETUP overlay ===== -->
+  <div id="setup" class="overlay">
+    <div class="panel">
+      <div class="ptitle lime">AI WARS // MATCH SETUP</div>
+      <div id="setupsides">
+        <div class="sidecol a">
+          <div class="sidehdr cyan">SIDE A</div>
+          <label class="flabel" for="kindA">CONTROLLER</label>
+          <select id="kindA" class="pxinput"></select>
+          <label class="flabel" for="labelA">LABEL</label>
+          <input id="labelA" class="pxinput" value="HOT CYAN" maxlength="18">
+          <div id="stanceRowA" class="stancerow hidden">
+            <span class="flabel">DOCTRINE — WORKER / VEHICLE / TRIANGLE</span>
+            <div class="stset">
+              <select id="stanceAworker" class="pxinput"></select>
+              <select id="stanceAvehicle" class="pxinput"></select>
+              <select id="stanceAtriangle" class="pxinput"></select>
+            </div>
+          </div>
+        </div>
+        <div class="sidecol b">
+          <div class="sidehdr magenta">SIDE B</div>
+          <label class="flabel" for="kindB">CONTROLLER</label>
+          <select id="kindB" class="pxinput"></select>
+          <label class="flabel" for="labelB">LABEL</label>
+          <input id="labelB" class="pxinput" value="NEON MAGENTA" maxlength="18">
+          <div id="stanceRowB" class="stancerow hidden">
+            <span class="flabel">DOCTRINE — WORKER / VEHICLE / TRIANGLE</span>
+            <div class="stset">
+              <select id="stanceBworker" class="pxinput"></select>
+              <select id="stanceBvehicle" class="pxinput"></select>
+              <select id="stanceBtriangle" class="pxinput"></select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="keyrow" class="hidden">
+        <label class="flabel" for="apikey">ANTHROPIC API KEY — SENT ONLY TO API.ANTHROPIC.COM</label>
+        <div class="keyline"><input id="apikey" type="password" class="pxinput" placeholder="sk-ant-..." autocomplete="off">
+          <span id="keyshow" class="pxbtn mini">SHOW</span></div>
+      </div>
+      <div id="keyrowOpenai" class="hidden">
+        <label class="flabel" for="apikeyOpenai">OPENAI API KEY — SENT ONLY TO API.OPENAI.COM</label>
+        <div class="keyline"><input id="apikeyOpenai" type="password" class="pxinput" placeholder="sk-..." autocomplete="off">
+          <span id="keyshowOpenai" class="pxbtn mini">SHOW</span></div>
+      </div>
+      <label class="chk hidden" id="rememberrow"><input type="checkbox" id="remember"> REMEMBER KEYS IN THIS BROWSER</label>
+      <div id="setuperr" class="magenta"></div>
+      <div class="btnrow"><span id="startbtn" class="pxbtn big">START MATCH</span></div>
+      <div class="replayrow vt">or <span id="replaylink" class="cyan link">load a replay file</span>
+        <input type="file" id="replayfile" accept=".json,application/json" class="hidden"></div>
+    </div>
+  </div>
+
+  <!-- ===== RESULT overlay ===== -->
+  <div id="result" class="overlay hidden">
+    <div class="panel center">
+      <div class="ptitle lime" id="restitle">--</div>
+      <div class="vt amber" id="resreason">--</div>
+      <div class="vt" id="reshp"><span class="cyan" id="reshpA"></span><span class="magenta" id="reshpB"></span></div>
+      <div class="btnrow">
+        <span id="exportbtn" class="pxbtn">EXPORT REPLAY</span>
+        <span id="rematchbtn" class="pxbtn">REMATCH</span>
+        <span id="newmatchbtn" class="pxbtn">NEW MATCH</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- intro sequence: splash iframe on top; solid black veil beneath it so the
+     game bg can fade in from black before the console drops. runIntro() in
+     ui.js drives it and removes both nodes when done. -->
+<div id="introblack"></div>
+<div id="splash">
+  <iframe id="splashframe" src="../assets/splash/AI Wars Splash.dc.html" title="AI WARS"></iframe>
+  <div id="splashcatch"></div>
+  <!-- walled-mode sound hotspot: sits over the splash's top-right SND button and
+       forwards clicks into the iframe via postMessage (armed with the catcher) -->
+  <div id="splashsnd"></div>
+  <div id="splashveil"></div>
+</div>
+
+<script>
+'use strict';
+/* ===== regions: exact boxes on the 1536x1024 plate (from color-coded plate) ===== */
+const PW = 1536, PH = 1024;
+const R = {
+  board:  [228,140,1075,671],
+  avA:    [ 72, 20, 115,105],
+  scoreA: [202, 20, 389, 89],
+  logo:   [614, 12, 307, 112.64],  /* h 11% of plate (was 82px = 8.008%, logo clipped) */
+  scoreB: [944, 20, 381, 91],
+  avB:    [1342,22, 119,107],   /* top-right corner (from chrome alpha) */
+  deploy: [ 32,162, 161,639],
+  status: [1342,166,159,317],
+  emotes: [1342,518,159,255],
+  chat:   [338,847.36, 845,122.88],  /* L22.0052% T82.75% W55.013% H12% — 15% overflowed the chrome cutout */
+  endturn:[1342,842.05,160,120],
+};
+const stage = document.getElementById('stage');
+for (const [id,[x,y,w,h]] of Object.entries(R)){
+  const el = document.getElementById(id); if (!el) continue;
+  el.style.left=(x/PW*100)+'%'; el.style.top=(y/PH*100)+'%';
+  el.style.width=(w/PW*100)+'%'; el.style.height=(h/PH*100)+'%';
+}
+if (location.search.includes('debug')) stage.classList.add('debug');
+
+/* chrome art bakes a near-black fill inside the chat/endturn cutouts (other
+   cutouts are already transparent there) — strip it so the panel glass
+   (.rg backdrop-filter) is the only thing showing, no baked solid layer. */
+const chromeImg = document.getElementById('chrome');
+function stripBakedFills(){
+  try{
+    const cv = document.createElement('canvas');
+    cv.width = chromeImg.naturalWidth; cv.height = chromeImg.naturalHeight;
+    const cx = cv.getContext('2d');
+    cx.drawImage(chromeImg,0,0);
+    const sx = cv.width/PW, sy = cv.height/PH;
+    ['chat','endturn'].forEach(name=>{
+      const [x,y,w,h] = R[name];
+      const px=Math.floor(x*sx), py=Math.floor(y*sy), pw=Math.ceil(w*sx), ph=Math.ceil(h*sy);
+      const id = cx.getImageData(px,py,pw,ph), d = id.data;
+      for (let i=0;i<d.length;i+=4){
+        if (d[i]<60 && d[i+1]<60 && d[i+2]<60) d[i+3]=0;   /* near-black fill only, keep colored frame art */
+      }
+      cx.putImageData(id,px,py);
+    });
+    chromeImg.src = cv.toDataURL('image/png');
+  }catch(err){
+    console.warn('stripBakedFills skipped (tainted canvas, likely file:// origin):', err);
+  }
+}
+if (chromeImg.complete) stripBakedFills(); else chromeImg.addEventListener('load', stripBakedFills, {once:true});
+
+/* stage scale + board canvas backing store */
+const boardEl = document.getElementById('board');
+new ResizeObserver(()=>{
+  stage.style.setProperty('--sw', stage.clientWidth);
+  const dpr = Math.min(2, window.devicePixelRatio||1);
+  boardEl.width  = Math.round(boardEl.clientWidth *dpr);
+  boardEl.height = Math.round(boardEl.clientHeight*dpr);
+}).observe(stage);
+
+/* ===== pixel-drawn hearts + emote glyphs (no image deps) ===== */
+const HEART=["0110110","1111111","1111111","1111111","0111110","0011100"];
+document.querySelectorAll('[data-heart]').forEach(el=>{
+  const c=el.getContext('2d'), a=el.dataset.heart;
+  const main=a==='a'?'#00c9c9':'#e00287', hi=a==='a'?'#7dfcf7':'#ff7dd0';
+  HEART.forEach((row,r)=>[...row].forEach((ch,q)=>{ if(ch!=='1')return; c.fillStyle=r<2?hi:main; c.fillRect(q*2,r*2,2,2);}));
+  c.fillStyle='#fff'; c.fillRect(2,2,2,2);
+});
+const EMO={
+ think:[["  yyyy  "," yyyyyy ","yybyybyy","yyyyyyyy","yyyyyyyy"," yyyyby ","  yyyy  ","   oo   "],{y:'#ffd23a',b:'#3a2800',o:'#c98f1e'}],
+ skull:[[" wwwwww ","wwwwwwww","wbbwwbbw","wbbwwbbw","wwwwwwww"," wwbbww ","  w  w  ","  w  w  "],{w:'#e8e8ee',b:'#101018'}],
+ fire:[["   r    ","  rr    "," rrro   "," rooo r ","roooyorr","royyyyor"," oyyyyo ","  oyyo  "],{r:'#e33a10',o:'#ff8c00',y:'#ffe27a'}],
+ poop:[["   b    ","  bbb   "," bbbbb  ","  bbb   "," bbbbb  ","bwbbbwbb","bbbbbbbb"," bbbbbb "],{b:'#7a4a20',w:'#fff'}],
+};
+document.querySelectorAll('[data-emote]').forEach(el=>{
+  const [grid,pal]=EMO[el.dataset.emote], c=el.getContext('2d');
+  grid.forEach((row,y)=>[...row].forEach((ch,x)=>{ if(ch===' ')return; c.fillStyle=pal[ch]; c.fillRect(x*3,y*3,3,3);}));
+});
+</script>
+
+<script src="../assets/sprites/atlas.js"></script>
+<script src="../assets/sprites/core-anim.js"></script>
+<script src="js/content.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/validate.js"></script>
+<script src="js/replay.js"></script>
+<script src="js/bots.js"></script>
+<script src="js/llm-client.js"></script>
+<script src="js/openai-client.js"></script>
+<script src="js/ollama-client.js"></script>
+<script src="js/webtab-client.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/render.js"></script>
+<script src="js/ui.js"></script>
+<script>AIWARS.UI.boot();</script>
+</body>
+</html>
