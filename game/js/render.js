@@ -860,11 +860,7 @@ function drawUnit(g_, u, t){
   const stance = (scene.stances && scene.stances[sideUp] && scene.stances[sideUp][u.type]) || 'default';
   const m = META.sprites[u.type+'_'+stance] || META.sprites[u.type+'_default'];
   if (!m) return;
-  let mult = u.type==='vehicle' ? 1.55 : u.type==='triangle' ? 1.35 : 1.2;
-  mult *= 1.15;   /* global sprite upsize */
-  /* attack-stance workers & triangles read as the aggressive variant — an extra
-     1.15x on top of the global bump (vehicles keep the plain global size) */
-  if (stance === 'attack' && (u.type === 'worker' || u.type === 'triangle')) mult *= 1.15;
+  const mult = u.type==='vehicle' ? 1.55 : u.type==='triangle' ? 1.35 : 1.2;
   const sc = (g_.tyh*mult)/Math.max(m.w,m.h);
   let w = m.w*sc, h = m.h*sc;
   let alpha = (u.alpha==null ? 1 : u.alpha);
@@ -950,7 +946,9 @@ function drawCore(g_, side, t){
      its bottom row, and size the FX to the block footprint. */
   const b = coreBounds(side);
   const bw = b.maxX-b.minX+1, bh = b.maxY-b.minY+1;
-  const sc = (g_.tyh*2.4*bh)/CORE.bodyW;
+  /* sprite kept at the original single-tile core scale (no block-size blowup) —
+     it reads as a normal core sitting on its 2x2 footprint, not a giant. */
+  const sc = (g_.tyh*2.4)/CORE.bodyW;
   const cx = g_.px(b.minX + bw/2), cy = g_.py(b.maxY+1);
   const ccx = g_.px(b.minX + bw/2), ccy = g_.py(b.minY + bh/2);   /* block center for rings */
   /* idle heartbeat glow so cores never read as dead scenery */
@@ -958,9 +956,9 @@ function drawCore(g_, side, t){
     const col = SIDE_RGB[sideL];
     const beat = 0.05 + 0.035*Math.sin(t/560 + (side==='B'?2.1:0));
     ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.globalAlpha = beat;
-    const gr = ctx.createRadialGradient(ccx,ccy,0,ccx,ccy,g_.tyh*2.8);
+    const gr = ctx.createRadialGradient(ccx,ccy,0,ccx,ccy,g_.tyh*2.2);
     gr.addColorStop(0,'rgba('+col+',1)'); gr.addColorStop(1,'rgba('+col+',0)');
-    ctx.fillStyle=gr; ctx.beginPath(); ctx.arc(ccx,ccy,g_.tyh*2.8,0,7); ctx.fill();
+    ctx.fillStyle=gr; ctx.beginPath(); ctx.arc(ccx,ccy,g_.tyh*2.2,0,7); ctx.fill();
     ctx.restore();
   }
   ctx.save(); ctx.translate(cx,cy); if (sideL==='b') ctx.scale(-1,1);
