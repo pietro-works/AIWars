@@ -78,15 +78,23 @@ ok(flags.builtA && flags.builtB, 'both sides completed at least one combat unit 
 NS.Replay.finish(replay, state.result);
 const json = NS.Replay.exportJSON(replay);
 const back = NS.Replay.importJSON(json);
-ok(JSON.stringify(back) === JSON.stringify(JSON.parse(json)), 'export -> import round-trips deep-equal');
+// compare against the ORIGINAL replay, not against a re-parse of the same
+// string — the latter can only fail if importJSON throws, so it never catches
+// a field that exportJSON silently drops.
+ok(JSON.stringify(back) === JSON.stringify(replay), 'export -> import round-trips deep-equal');
 ok(back.turns.length === replay.turns.length, 'turn count preserved: ' + back.turns.length);
 ok(back.result && back.result.winner === state.result.winner, 'result preserved');
 
-/* ---- write the fixture used by the replay viewer / renderer dev ---- */
-const fixDir = path.join(__dirname, '..', 'fixtures');
-fs.mkdirSync(fixDir, { recursive: true });
-fs.writeFileSync(path.join(fixDir, 'sample-match.json'), json);
-console.log('fixture written: fixtures/sample-match.json (' + (json.length / 1024).toFixed(0) + ' KB, ' + replay.turns.length + ' half-turns)');
+/* ---- fixture used by the replay viewer / renderer dev ----
+   matchId/timestamp are freshly stamped per run, so an unconditional write
+   dirties git on every test run; regenerate only on explicit request:
+   node game/tests/integration.test.js --record                             */
+if (process.argv.includes('--record')) {
+  const fixDir = path.join(__dirname, '..', 'fixtures');
+  fs.mkdirSync(fixDir, { recursive: true });
+  fs.writeFileSync(path.join(fixDir, 'sample-match.json'), json);
+  console.log('fixture written: fixtures/sample-match.json (' + (json.length / 1024).toFixed(0) + ' KB, ' + replay.turns.length + ' half-turns)');
+}
 
 if (failures) { console.error(failures + ' FAILURES'); process.exit(1); }
 console.log('PASS: integration');

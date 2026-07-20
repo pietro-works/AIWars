@@ -221,8 +221,9 @@ select.pxinput, select.pxinput option{ background:#04070c; color:var(--lime); }
 /* parent-side click catcher: enabled only when the iframe's document is not
    reachable (file:// opaque origins) — otherwise clicks go to the splash */
 #splashcatch{ position:absolute; inset:0; cursor:pointer; pointer-events:none; }
-/* walled-mode sound hotspot: covers the splash's 46px SND button (top:18 right:18)
-   with margin; armed together with the catcher, inert (pe:none) otherwise so
-   same-origin clicks fall through to the real button inside the iframe */
-#splashsnd{ position:absolute; top:0; right:0; width:80px; height:80px;
+/* walled-mode sound hotspot: covers the 3D splash's 34px SND button (top:18
+   right:18) with margin; armed together with the catcher, inert (pe:none)
+   otherwise so same-origin clicks fall through to the real button inside the
+   iframe */
+#splashsnd{ position:absolute; top:0; right:0; width:64px; height:64px;
   cursor:pointer; pointer-events:none; }

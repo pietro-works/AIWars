@@ -167,51 +167,54 @@ test('movement: mid-build worker ignores move orders', () => {
   assertEq(log.ordersApplied, []);
 });
 
-// ═══ movement: tile exclusivity ═════════════════════════════════════════════
-test('movement: straight-line step into an occupied tile stops the mover', () => {
+// ═══ movement: landing exclusivity (transit passes through) ═════════════════
+test('movement: transit passes through an occupied tile, lands on free target', () => {
   const s = mk();
   s.units = [
     unit('A_v1','A','vehicle',[5,5],60),   // move 3
-    unit('A_w9','A','worker',[7,5],20),    // blocker sitting on the line
+    unit('A_w9','A','worker',[7,5],20),    // sits on the line — no longer a wall
   ];
   const { state, log } = Engine.halfTurn(s, 'A', { ...EMPTY, orders: [{ unit:'A_v1', target:[8,5] }] });
-  assertEq(byId(state,'A_v1').pos, [6,5], 'stops one short of the blocker');
-  assertEq(log.ordersApplied, [{ unit:'A_v1', from:[5,5], to:[6,5], clamped:true }]);
+  assertEq(byId(state,'A_v1').pos, [8,5], 'passes through the worker');
+  assertEq(log.ordersApplied, [{ unit:'A_v1', from:[5,5], to:[8,5], clamped:false }]);
+  assertEq(byId(state,'A_w9').pos, [7,5], 'blocker untouched');
 });
 
-test('movement: blocked diagonal sidesteps x-axis first, then y-axis', () => {
-  // diagonal [6,6] blocked, x-axis [6,5] free -> sidestep costs the step budget
+test('movement: occupied destination redirects to nearest free tile from mover POV', () => {
   const s = mk();
   s.units = [
-    unit('A_t1','A','triangle',[5,5],16),
-    unit('A_w8','A','worker',[6,6],20),
+    unit('A_v1','A','vehicle',[5,5],60),   // move 3
+    unit('A_w9','A','worker',[7,5],20),    // squatting on the ordered tile
   ];
-  const r1 = Engine.halfTurn(s, 'A', { ...EMPTY, orders: [{ unit:'A_t1', target:[7,7] }] });
-  // budget = cheb(from,target) = 2 steps: sidestep to [6,5], then diagonal [7,6]
-  assertEq(byId(r1.state,'A_t1').pos, [7,6]);
-  assertEq(r1.log.ordersApplied[0].clamped, true, 'sidestep burned a step: target missed');
-  // x-axis blocked too -> y-axis sidestep
-  const s2 = mk();
-  s2.units = [
-    unit('A_t1','A','triangle',[5,5],16),
-    unit('A_w8','A','worker',[6,6],20),
-    unit('A_w7','A','worker',[6,5],20),
-  ];
-  const r2 = Engine.halfTurn(s2, 'A', { ...EMPTY, orders: [{ unit:'A_t1', target:[7,7] }] });
-  assertEq(byId(r2.state,'A_t1').pos, [6,7]); // [5,6] then [6,7]
+  const { state, log } = Engine.halfTurn(s, 'A', { ...EMPTY, orders: [{ unit:'A_v1', target:[7,5] }] });
+  // ring r=1 around [7,5], closest to [5,5] (d=1), first in clockwise walk: [6,6]
+  assertEq(byId(state,'A_v1').pos, [6,6]);
+  assertEq(log.ordersApplied, [{ unit:'A_v1', from:[5,5], to:[6,6], clamped:true }]);
 });
 
-test('movement: fully boxed-in unit stays put with clamped:true', () => {
+test('movement: corner-boxed unit escapes through its neighbors', () => {
   const s = mk();
   s.units = [
-    unit('A_t1','A','triangle',[5,5],16),
-    unit('A_w7','A','worker',[6,6],20),   // diagonal
-    unit('A_w8','A','worker',[6,5],20),   // x sidestep
-    unit('A_w9','A','worker',[5,6],20),   // y sidestep
+    unit('A_t1','A','triangle',[5,5],16),  // move 6
+    unit('A_w7','A','worker',[6,6],20),    // the old wall
+    unit('A_w8','A','worker',[6,5],20),
+    unit('A_w9','A','worker',[5,6],20),
   ];
   const { state, log } = Engine.halfTurn(s, 'A', { ...EMPTY, orders: [{ unit:'A_t1', target:[7,7] }] });
-  assertEq(byId(state,'A_t1').pos, [5,5]);
-  assertEq(log.ordersApplied, [{ unit:'A_t1', from:[5,5], to:[5,5], clamped:true }]);
+  assertEq(byId(state,'A_t1').pos, [7,7], 'walks straight through the box');
+  assertEq(log.ordersApplied, [{ unit:'A_t1', from:[5,5], to:[7,7], clamped:false }]);
+});
+
+test('movement: clamped short onto an occupied tile re-resolves the landing', () => {
+  const s = mk();
+  s.units = [
+    unit('A_v1','A','vehicle',[5,5],60),   // move 3: clamp point is [8,5]
+    unit('A_w9','A','worker',[8,5],20),    // squatting exactly there
+  ];
+  const { state, log } = Engine.halfTurn(s, 'A', { ...EMPTY, orders: [{ unit:'A_v1', target:[10,5] }] });
+  // ring r=1 around [8,5], closest to [5,5] (d=2), first in clockwise walk: [7,6]
+  assertEq(byId(state,'A_v1').pos, [7,6]);
+  assertEq(log.ordersApplied[0].clamped, true);
 });
 
 test('movement: two movers to the same tile — first in array order wins', () => {

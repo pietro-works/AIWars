@@ -3,8 +3,8 @@
 // core palette (square only as a low-gain color layer behind triangle,
 // lowpassed <=2.4kHz), gentle exponential envelopes, shared noise buffer,
 // detune pairs + slow vibrato for warmth.
-// Graph: sfxBus + ambientBus -> master(0.5, mute here) -> safety limiter
-// (thr -18, knee 20, ratio 8, atk .003, rel .25) -> lowpass 6.8kHz -> out.
+// Graph: sfxBus + ambientBus + musicBus -> master(0.5, mute here) -> safety
+// limiter (thr -18, knee 20, ratio 8, atk .003, rel .25) -> lowpass 6.8k -> out.
 // Per-event cooldowns, hard 3-voices-per-50ms budget, +-2.5% pitch and
 // +-10% gain randomization per voice (anti-fatigue).
 // Every public function is a safe no-op before init() or without WebAudio.
@@ -15,6 +15,7 @@
   let master = null;      // master gain (mute lives here)
   let sfxBus = null;      // all one-shot voices
   let ambientBus = null;  // drone bed level + ducking
+  let musicBus = null;    // in-game track level + ducking (routed like ambient)
   let noiseBuf = null;    // shared 2s white-noise buffer, made once at init
   let initFailed = false;
   let muted = false;
@@ -22,6 +23,8 @@
   const MASTER_GAIN = 0.5;
   const LP_MASTER_HZ = 6800;
   const AMBIENT_GAIN = 0.30;
+  const MUSIC_GAIN = 0.55;       // ~55% of the SFX bus at rest — a real presence, VFX still on top
+  const MUSIC_DUCK = 0.65;       // under tier-2/3 combat music dips to ~36%, not buried at 12%
   const VOICE_BUDGET = 3;        // max voices starting per 50ms window
   const MUTE_KEY = 'aiwars.muted';
 
@@ -110,13 +113,18 @@
       ambientBus.gain.value = AMBIENT_GAIN;
       ambientBus.connect(master);
 
+      musicBus = ctx.createGain();
+      musicBus.gain.value = MUSIC_GAIN;
+      musicBus.connect(master);
+
       noiseBuf = makeNoiseBuf();
       watchVisibility();
       resume();
       if (ambientWanted) startAmbient();
+      if (musicWanted) startMusic();
     } catch (e){
       initFailed = true;
-      ctx = null; master = null; sfxBus = null; ambientBus = null;
+      ctx = null; master = null; sfxBus = null; ambientBus = null; musicBus = null;
     }
   }
 
@@ -452,15 +460,22 @@
     if (on) startAmbient(); else stopAmbient();
   }
 
-  // Duck the bed to 40% under tier-2/3 events; recover over ~0.5s.
-  // Gain automation, not compressor sidechain (WebAudio has none).
+  // Duck the beds (ambient + music) to 40% under tier-2/3 events; recover
+  // over ~0.5s. Gain automation, not compressor sidechain (WebAudio has none).
   function duckAmbient(){
-    if (!ctx || !ambientBus || !amb) return;
+    if (!ctx) return;
     try {
       const t = ctx.currentTime;
-      ambientBus.gain.cancelScheduledValues(t);
-      ambientBus.gain.setTargetAtTime(AMBIENT_GAIN * 0.4, t, 0.02);
-      ambientBus.gain.setTargetAtTime(AMBIENT_GAIN, t + 0.15, 0.35);
+      if (ambientBus && amb){
+        ambientBus.gain.cancelScheduledValues(t);
+        ambientBus.gain.setTargetAtTime(AMBIENT_GAIN * 0.4, t, 0.02);
+        ambientBus.gain.setTargetAtTime(AMBIENT_GAIN, t + 0.15, 0.35);
+      }
+      if (musicBus && mus){
+        musicBus.gain.cancelScheduledValues(t);
+        musicBus.gain.setTargetAtTime(MUSIC_GAIN * MUSIC_DUCK, t, 0.02);
+        musicBus.gain.setTargetAtTime(MUSIC_GAIN, t + 0.15, 0.35);
+      }
     } catch (e){ /* no-op */ }
   }
 
@@ -470,14 +485,198 @@
     if (!doc || typeof doc.addEventListener !== 'function') return;
     try {
       doc.addEventListener('visibilitychange', function(){
-        if (!ctx || !ambientBus) return;
+        if (!ctx) return;
         try {
           const t = ctx.currentTime;
-          ambientBus.gain.cancelScheduledValues(t);
-          ambientBus.gain.setTargetAtTime(doc.hidden ? 0.0001 : AMBIENT_GAIN, t, doc.hidden ? 0.1 : 0.3);
+          if (ambientBus){
+            ambientBus.gain.cancelScheduledValues(t);
+            ambientBus.gain.setTargetAtTime(doc.hidden ? 0.0001 : AMBIENT_GAIN, t, doc.hidden ? 0.1 : 0.3);
+          }
+          if (musicBus){
+            musicBus.gain.cancelScheduledValues(t);
+            musicBus.gain.setTargetAtTime(doc.hidden ? 0.0001 : MUSIC_GAIN, t, doc.hidden ? 0.1 : 0.3);
+          }
         } catch (e){ /* no-op */ }
       });
     } catch (e){ /* no-op */ }
+  }
+
+  // ---- In-game track: "SIGNAL PATROL" — A minor, 96 BPM, 8th-note grid ----
+  // Exciting but never overbearing: quarter-pulse bass, whisper pad, sparse
+  // pentatonic lead phrases. 8-bar chord cycle (Am F C G Am F Dm Em) inside a
+  // 4-cycle super-form (~80s: bass+pad / +lead / +tick / +lead+tick) so it
+  // never loop-fatigues. Diatonic to the C-major/A-minor SFX palette.
+  // Routed like ambient: musicBus -> master, ducked under tier-2/3 events by
+  // the same duckAmbient() automation. Chris Wilson lookahead scheduler;
+  // re-anchors after hidden-tab interval throttling (watchVisibility already
+  // silences the bus while the tab is hidden).
+  let mus = null;           // { fade } handle, null when off
+  let musicWanted = false;  // remembered across pre-init calls
+  let musTimer = null;
+  let musStep = 0;
+  let musNext = 0;
+
+  const MUS_STEP = 60 / 96 / 2;   // 8th notes at 96 BPM
+  const MUS_CYCLE = 64;           // 8 bars of 8ths per chord cycle (~20s)
+
+  // Chord cycle rows: [bass root, bass fifth, pad root, pad fifth] in Hz.
+  const MUS_CHORDS = [
+    [110.00, 82.41, 220.00, 329.63],   // Am
+    [87.31, 130.81, 174.61, 261.63],   // F
+    [65.41, 98.00, 130.81, 196.00],    // C
+    [98.00, 146.83, 196.00, 293.66],   // G
+    [110.00, 82.41, 220.00, 329.63],   // Am
+    [87.31, 130.81, 174.61, 261.63],   // F
+    [73.42, 110.00, 146.83, 220.00],   // Dm
+    [82.41, 123.47, 164.81, 246.94]    // Em
+  ];
+
+  // Sparse lead phrases (A-minor pentatonic): [8th-step-in-bar, Hz, dur, vib].
+  const MUS_PHRASES = [
+    [[0, 329.63, 0.5, 0], [2, 392.00, 0.35, 0], [3, 329.63, 0.9, 6]],
+    [[0, 440.00, 0.45, 0], [2, 392.00, 0.35, 0], [4, 329.63, 1.0, 6]],
+    [[0, 261.63, 0.45, 0], [1, 293.66, 0.35, 0], [2, 329.63, 0.9, 6]]
+  ];
+
+  // Music-only tonal voice -> mus.fade. No SFX voice budget, no cooldown,
+  // exact pitch (music must stay in tune); only gain varies +-8%.
+  function mvoice(o){
+    if (!ctx || !mus) return;
+    try {
+      const t0 = o.at;
+      const dur = o.dur || 0.2;
+      const attack = o.attack != null ? o.attack : 0.015;
+      const end = t0 + Math.max(dur, attack + 0.06);
+      const peak = Math.max(0.0002, (o.gain || 0.03) * (1 + (Math.random() * 2 - 1) * 0.08));
+
+      const env = ctx.createGain();
+      env.gain.setValueAtTime(0.0001, t0);
+      env.gain.exponentialRampToValueAtTime(peak, t0 + attack);
+      env.gain.exponentialRampToValueAtTime(0.0001, end);
+
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = o.lpf || 2200;
+      env.connect(lp); lp.connect(mus.fade);
+
+      const oscs = [];
+      function mk(cents){
+        const osc = ctx.createOscillator();
+        osc.type = o.type || 'triangle';
+        if (cents) osc.detune.value = cents;
+        osc.frequency.setValueAtTime(o.freq, t0);
+        osc.connect(env);
+        osc.start(t0); osc.stop(end + 0.05);
+        oscs.push(osc);
+      }
+      if (o.pair){ mk(4); mk(-4); } else mk(0);
+
+      if (o.vibrato){
+        const lfo = ctx.createOscillator();
+        lfo.frequency.value = 5.5;
+        const lg = ctx.createGain();
+        lg.gain.value = o.vibrato;
+        lfo.connect(lg);
+        for (const osc of oscs) lg.connect(osc.detune);
+        lfo.start(t0); lfo.stop(end + 0.05);
+      }
+    } catch (e){ /* never let music kill the game loop */ }
+  }
+
+  // Near-subliminal off-beat noise tick -> mus.fade.
+  function mtick(at){
+    if (!ctx || !mus || !noiseBuf) return;
+    try {
+      const end = at + 0.065;
+      const src = ctx.createBufferSource();
+      src.buffer = noiseBuf; src.loop = true;
+      const f = ctx.createBiquadFilter();
+      f.type = 'bandpass'; f.frequency.value = 4500; f.Q.value = 1.5;
+      const env = ctx.createGain();
+      env.gain.setValueAtTime(0.0001, at);
+      env.gain.exponentialRampToValueAtTime(0.011, at + 0.003);
+      env.gain.exponentialRampToValueAtTime(0.0001, end);
+      src.connect(f); f.connect(env); env.connect(mus.fade);
+      src.start(at); src.stop(end + 0.05);
+    } catch (e){ /* no-op */ }
+  }
+
+  function musScheduleStep(s, t, cycle){
+    const bar = s >> 3, beat = s & 7;
+    const phase = cycle & 3;        // super-form position 0..3
+    const ch = MUS_CHORDS[bar];
+
+    // bass pulse: root on beat 1, fifth on beat 3 — a slow heartbeat
+    if (beat === 0) mvoice({ type: 'triangle', freq: ch[0], dur: 0.5, gain: 0.042, attack: 0.012, lpf: 900, pair: true, at: t });
+    if (beat === 4) mvoice({ type: 'triangle', freq: ch[1], dur: 0.5, gain: 0.036, attack: 0.012, lpf: 900, pair: true, at: t });
+
+    // whisper pad: chord root+fifth, one bar long, far under the SFX
+    if (beat === 0){
+      mvoice({ type: 'triangle', freq: ch[2], dur: 2.3, gain: 0.014, attack: 0.5, lpf: 800, pair: true, at: t });
+      mvoice({ type: 'sine', freq: ch[3], dur: 2.3, gain: 0.011, attack: 0.5, lpf: 800, pair: true, at: t });
+    }
+
+    // sparse lead: bars 2 and 6 only, on phases 1 and 3, phrase rotates
+    if ((phase === 1 || phase === 3) && (bar === 1 || bar === 5)){
+      const phr = MUS_PHRASES[(cycle + bar) % 3];
+      for (const n of phr){
+        if (n[0] === beat) mvoice({ type: 'triangle', freq: n[1], dur: n[2], gain: 0.03, attack: 0.02, lpf: 2200, pair: true, vibrato: n[3], at: t });
+      }
+    }
+
+    // off-beat tick pulse, phases 2-3 only
+    if (phase >= 2 && (beat === 2 || beat === 6)) mtick(t);
+  }
+
+  function musTick(){
+    if (!ctx || !mus) return;
+    try {
+      // self-heal after hidden-tab interval throttling: never replay the
+      // backlog of missed steps (bus was silenced while hidden), re-anchor
+      if (musNext < ctx.currentTime - 0.02) musNext = ctx.currentTime + 0.05;
+      while (musNext < ctx.currentTime + 0.12){
+        musScheduleStep(musStep % MUS_CYCLE, musNext, Math.floor(musStep / MUS_CYCLE));
+        musNext += MUS_STEP;
+        musStep++;
+      }
+    } catch (e){ /* no-op */ }
+  }
+
+  function startMusic(){
+    if (!ctx || !musicBus || mus) return; // never double the track
+    try {
+      const t = ctx.currentTime;
+      // Dedicated fade stage so ducking (on musicBus) never fights fades.
+      const fade = ctx.createGain();
+      fade.gain.setValueAtTime(0.0001, t);
+      fade.gain.setTargetAtTime(1, t, 0.7); // ~2s soft fade-in
+      fade.connect(musicBus);
+      mus = { fade: fade };
+      musStep = 0;
+      musNext = t + 0.08;
+      musTimer = setInterval(musTick, 25);
+    } catch (e){ mus = null; }
+  }
+
+  function stopMusic(){
+    if (!ctx || !mus) return;
+    const m = mus;
+    mus = null; // released immediately: a new music(true) builds fresh
+    if (musTimer != null){ clearInterval(musTimer); musTimer = null; }
+    try {
+      const t = ctx.currentTime;
+      m.fade.gain.cancelScheduledValues(t);
+      m.fade.gain.setTargetAtTime(0.0001, t, 0.2); // soft fade-out
+    } catch (e){ /* no-op */ }
+    // in-flight notes ring into the fading stage; release it once silent
+    setTimeout(function(){ try { m.fade.disconnect(); } catch (e){ /* no-op */ } }, 1500);
+  }
+
+  // music(on) — idempotent, no-op safe pre-init (remembered until init).
+  function music(on){
+    musicWanted = !!on;
+    if (!ctx || !musicBus) return;
+    if (on) startMusic(); else stopMusic();
   }
 
   // play('coreHit') — no-op when uninitialized, muted, unknown, or cooling down.
@@ -519,6 +718,7 @@
     init: init,
     play: play,
     ambient: ambient,
+    music: music,
     setMuted: setMuted,
     toggleMute: toggleMute,
     isMuted: isMuted

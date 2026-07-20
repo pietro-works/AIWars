@@ -56,7 +56,12 @@
   }
 
   // Coerce to a clamped integer grid coordinate, or null when not numeric.
+  // Guard the Number() coercion first: Number(null)/Number(true)/Number('')/
+  // Number([7]) all yield usable numbers and would fabricate an order out of
+  // junk. Accept only real numbers and non-blank numeric strings.
   function clampCoord(v, max){
+    if (typeof v !== 'number' && typeof v !== 'string') return null;
+    if (typeof v === 'string' && v.trim() === '') return null;
     const n = Number(v);
     if (!isFinite(n)) return null;
     return Math.min(max, Math.max(0, Math.round(n)));

@@ -118,6 +118,14 @@
       if (!t.resultingState || typeof t.resultingState !== 'object'){
         fail(at + '.resultingState snapshot is missing (renderer cannot scrub without it)');
       }
+      // The renderer + hudState deref cores.A/B and units[] every half-turn with
+      // no guards; a structurally-empty snapshot must be rejected here, not crash
+      // playReplay mid-run as an unhandled async throw.
+      const rs = t.resultingState;
+      if (!rs.cores || typeof rs.cores !== 'object' || !rs.cores.A || !rs.cores.B){
+        fail(at + '.resultingState.cores must have A and B');
+      }
+      if (!Array.isArray(rs.units)) fail(at + '.resultingState.units must be an array');
     }
 
     if (obj.result != null){

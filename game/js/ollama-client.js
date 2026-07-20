@@ -77,24 +77,28 @@
         signal: controller.signal
       });
     } catch (err) {
+      clearTimeout(timer);   // no early finally anymore — clear on the reject path too
       if (err && err.name === 'LLMFailure') throw err;
       const timedOut = controller.signal.aborted || (err && err.name === 'AbortError');
       // A refused connection lands here too (server not running) — retryable,
       // then surfaced as 'exhausted' so the turn is a clean no-op.
       return { retryable: true, reason: timedOut ? 'timeout after ' + timeoutMs + 'ms' : 'connection error: ' + String((err && err.message) || err) };
-    } finally {
-      clearTimeout(timer);
     }
 
+    // Timer stays armed through the body read: a stalled body must still abort.
     if (res.ok) {
       let data;
-      try { data = await res.json(); } catch (e) { return { retryable: true, reason: 'unreadable response body' }; }
+      try { data = await res.json(); }
+      catch (e) { clearTimeout(timer); return { retryable: true, reason: controller.signal.aborted ? 'timeout reading response body' : 'unreadable response body' }; }
+      clearTimeout(timer);
       const raw = data && data.message && typeof data.message.content === 'string' ? data.message.content : '';
       return { ok: true, raw: raw };
     }
 
     const status = res.status;
-    const reason = 'HTTP ' + status + ((await readErr(res)) ? ': ' + (await readErr(res)) : '');
+    const apiMsg = await readErr(res);   // read ONCE — a second read gets an empty body
+    clearTimeout(timer);
+    const reason = 'HTTP ' + status + (apiMsg ? ': ' + apiMsg : '');
     if (status >= 500) return { retryable: true, reason: reason };
     // 404 (model not pulled) / 400 (bad request) — config problems, no retry.
     return { fatal: true, kind: 'auth', reason: reason };

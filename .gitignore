@@ -4,3 +4,4 @@ work/
 .claude/
 .DS_Store
 **/.DS_Store
+bin/

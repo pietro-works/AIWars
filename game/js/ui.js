@@ -31,6 +31,7 @@ function C(path, vars){
 }
 function sfx(ev){ try{ if (NS.Audio && NS.Audio.play) NS.Audio.play(ev); }catch(e){} }
 function amb(on){ try{ if (NS.Audio && NS.Audio.ambient) NS.Audio.ambient(on); }catch(e){} }
+function mus(on){ try{ if (NS.Audio && NS.Audio.music) NS.Audio.music(on); }catch(e){} }
 function humanSide(){ return cfg ? (cfg.A.kind==='human' ? 'A' : cfg.B.kind==='human' ? 'B' : null) : null; }
 function labelOf(side){ return (cfg && cfg[side] && cfg[side].label) || ('SIDE '+side); }
 function sideColor(side){ return side==='A' ? 'cyan' : 'magenta'; }
@@ -173,12 +174,17 @@ async function remoteSanitized(state, side){
   const kind = cfg[side].kind;
   chat(C('eventLines.thinking', { label: labelOf(side) }), sideColor(side));
   timerRun(Math.round(providerTimeoutMs(kind)/1000), labelOf(side).toUpperCase()+' COMPUTING');
+  const myGen = gen;   /* a rematch/replay load bumps gen while we await; a stale
+                          settle must not touch the NEW session (timer, chat,
+                          authFails, cfg.disabled) — caller discards the value */
   try{
     const r = await providerOrders(kind, side, payload);
+    if (gen !== myGen) return noopOrders('timeout');
     timerStop();
     authFails[side] = 0;
     return NS.Validate.sanitizeOrders(r.raw, state, side);
   }catch(err){
+    if (gen !== myGen) return noopOrders('timeout');
     timerStop();
     const k = (err && err.kind) || 'exhausted';
     if (k === 'auth' && ++authFails[side] >= 2){
@@ -362,7 +368,9 @@ function boardClick(ev){
     hc.moves.set(hc.sel.id, tile);
     hc.builds.delete(hc.sel.id);
     chat(hc.sel.id+' -> ['+tile[0]+','+tile[1]+']', sideColor(hc.side));
-    hc.sel = null;
+    hc.sel = null; hc.card = null;
+    d.querySelectorAll('.card.sel').forEach(e=>e.classList.remove('sel'));  /* clear stale DEPLOY highlight */
+    $('deploybtn').classList.add('off');
     NS.Render.clearHighlight();
     refreshOrderInfo();
     sfx('orderSet');   /* commit confirm; bare 'move' stays with render's motion steps */
@@ -413,6 +421,7 @@ function deployClick(){
 
 /* ===== match loop ===== */
 async function runMatch(myGen){
+  try {
   const rep = match.replay;
   chat(C('eventLines.matchStart', { labelA: labelOf('A'), labelB: labelOf('B') }), 'lime');
   hudState(match.state);
@@ -444,6 +453,16 @@ async function runMatch(myGen){
   if (gen !== myGen || !match.state.result) return;
   NS.Replay.finish(rep, match.state.result);
   showResult(match.state.result, match.state);
+  } catch (err){
+    /* an uncaught throw in the loop must not strand the music/ambient scheduler
+       (only showResult stops them on the happy path). Generation-aware so a
+       stale run's failure never silences a match that already took over. */
+    if (gen !== myGen) return;
+    console.error('AI WARS: match loop aborted —', err);
+    timerStop(); amb(false); mus(false);
+    parsestat('ERROR');
+    sysnote('MATCH ERROR — ' + String((err && err.message) || err).slice(0, 80));
+  }
 }
 
 /* ===== stance resolution + match start ===== */
@@ -587,6 +606,7 @@ async function startMatchInner(){
   NS.Render.renderState(state);
   sfx('matchStart');   /* "systems online" power-up sweep */
   amb(true);           /* ambient bed runs for the whole match, off at result */
+  mus(true);           /* in-game track rides the same lifecycle as the bed */
   runMatch(gen);
   return true;
 }
@@ -609,6 +629,7 @@ function showResult(result, state){
   $('reshpB').textContent = labelOf('B')+' '+Math.max(0,state.cores.B.hp);
   $('result').classList.remove('hidden');
   amb(false);
+  mus(false);
   /* exactly one result sting: defeat only for a human loss, matchEnd for draws,
      victory otherwise (human win or spectated win) */
   const hs = humanSide();
@@ -631,6 +652,7 @@ function exportReplay(){
 
 /* ===== replay viewer ===== */
 async function playReplay(rep, myGen){
+  try {
   cfg = {
     A: { kind: rep.meta.players.A.kind, model: rep.meta.players.A.model, label: rep.meta.players.A.label || 'SIDE A' },
     B: { kind: rep.meta.players.B.kind, model: rep.meta.players.B.model, label: rep.meta.players.B.label || 'SIDE B' },
@@ -649,6 +671,7 @@ async function playReplay(rep, myGen){
   hudState(initial);
   chat('REPLAY // '+labelOf('A')+' VS '+labelOf('B'), 'lime');
   amb(true);   /* replays get the same bed; showResult / the no-result branch stop it */
+  mus(true);   /* and the same track */
   let lastTurn = 0;
   for (const log of rep.turns){
     if (gen !== myGen) return;
@@ -671,9 +694,21 @@ async function playReplay(rep, myGen){
     /* file with no recorded result: don't strand the user on a dead board */
     timerStop();
     amb(false);
+    mus(false);
     $('restitle').textContent = 'REPLAY ENDED';
     $('resreason').textContent = 'NO RESULT RECORDED IN THIS FILE';
     /* clear the two spans, never the parent — showResult needs them later */
+    $('reshpA').textContent = ''; $('reshpB').textContent = '';
+    $('result').classList.remove('hidden');
+  }
+  } catch (err){
+    /* same strand guard as runMatch: a throw over a bad replay must stop the
+       music/ambient scheduler, not leave it running over a dead screen. */
+    if (gen !== myGen) return;
+    console.error('AI WARS: replay aborted —', err);
+    timerStop(); amb(false); mus(false);
+    $('restitle').textContent = 'REPLAY ERROR';
+    $('resreason').textContent = String((err && err.message) || err).slice(0, 80);
     $('reshpA').textContent = ''; $('reshpB').textContent = '';
     $('result').classList.remove('hidden');
   }
@@ -817,7 +852,7 @@ function runIntro(){
     catcher.style.pointerEvents = 'auto';
     catcher.addEventListener('click', e=>{ if (e.isTrusted) begin(); });
     /* walled mode blindspot fix: the catcher paints above the WHOLE iframe, so
-       the splash's own SND button (top-right, 46px @ 18px inset) can never be
+       the splash's own SND button (top-right, 34px @ 18px inset) can never be
        hit. This hotspot covers that corner and forwards the click in via
        postMessage instead of begin(); everywhere else still begins. Inert
        (pointer-events:none) in same-origin mode, where the real button works. */
@@ -932,6 +967,10 @@ async function boot(){
     sfx('emote');
   }));
   $('btnsend').addEventListener('click', ()=>chat(C('uiCopy.sendLines') || 'gl hf, machine.', sideColor(mySide())));
+  $('btnemote').addEventListener('click', ()=>{
+    const els = d.querySelectorAll('.emote');
+    if (els.length) els[Math.floor(Math.random()*els.length)].click();
+  });
   $('btninsult').addEventListener('click', ()=>{
     const s = mySide();
     NS.Render.emote(otherSide(s).toLowerCase(), '!!');

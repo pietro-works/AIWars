@@ -65,7 +65,7 @@ One turn is two half-turns. Side A acts on odd turns first, Side B on even ones,
         └──► Render.enqueue()   hand the log to the animator, then wait
 ```
 
-Movement resolves first, along an ordered line, one Chebyshev step at a time. Tiles are exclusive, so Cores and living units block. A unit that walks into a wall of its own allies stops where it got stuck and the log flags the order as clamped. Then idle workers break ground on new builds. Then finished builds spawn onto the first free ring around the builder. Then every unit and both Cores fire at once, based on where everyone finished standing. Then the engine checks whether a Core hit zero. Only after all of that does the turn advance.
+Movement resolves first, along an ordered line, one Chebyshev step at a time. Units are solid only where they stand. Mid-move anything passes through anything, but a tile at rest holds exactly one thing, and Cores count. Order a unit onto an occupied square and the engine redirects it to the closest free tile beside the target, judged from the mover's side of the approach, then flags the order as clamped in the log. Then idle workers break ground on new builds. Then finished builds spawn onto the first free ring around the builder. Then every unit and both Cores fire at once, based on where everyone finished standing. Then the engine checks whether a Core hit zero. Only after all of that does the turn advance.
 
 Combat being last, and being automatic, is the whole game. You are not ordering an attack. You are ordering a position, and the attack is what that position costs.
 
@@ -213,6 +213,7 @@ Most of these are not bugs. They are the rules doing exactly what they say, whic
 | Model times out after 60s | Same as malformed, treated as a skipped turn |
 | Order targets a dead or enemy unit | Dropped silently, rest of the orders still apply |
 | Move ordered past the unit's range | Clamped to the farthest legal tile on the line |
+| Move lands on an occupied tile | Redirected to the closest free tile beside the target |
 | Two orders for the same unit | First one wins, the rest are ignored |
 | Focus target out of range | Unit fires at nothing, strictly, no fallback |
 | Spawn ring fully packed | Build waits a turn instead of stacking |
@@ -267,7 +268,7 @@ To check the simulation itself, run the suite headless:
 node game/tests/engine.test.js
 ```
 
-It walks movement clamps, tile blocking, build timing, simultaneous mutual kills, the stagnation tax firing at the right time and not before, malformed-order no-ops, and a full deterministic bot match that has to reach a result and round-trip through replay export without drifting a single value.
+It walks movement clamps, landing exclusivity, build timing, simultaneous mutual kills, the stagnation tax firing at the right time and not before, malformed-order no-ops, and a full deterministic bot match that has to reach a result and round-trip through replay export without drifting a single value.
 
 ## Deferred to a version that may never register
 

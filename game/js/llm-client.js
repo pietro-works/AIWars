@@ -18,7 +18,10 @@
 
   const API_URL = 'https://api.anthropic.com/v1/messages';
   const ANTHROPIC_VERSION = '2023-06-01';
-  const MAX_TOKENS = 1024;
+  // Thinking-enabled models (fable-5 always, sonnet-5 adaptive) spend
+  // reasoning tokens from this same budget BEFORE the text block; 1024 could
+  // exhaust mid-thought and return an empty/truncated turn with no error.
+  const MAX_TOKENS = 8192;
   // Waits BEFORE retry attempt 2 and attempt 3 (contract: backoff 1s / 3s).
   const BACKOFF_MS = [1000, 3000];
   // Cap on server-supplied retry-after so a hostile/buggy header can't stall a match.
@@ -217,6 +220,7 @@
         signal: controller.signal
       });
     } catch (err) {
+      clearTimeout(timer);
       if (err && err.name === 'LLMFailure') throw err; // missing CONST from buildSystemPrompt
       const timedOut = controller.signal.aborted || (err && err.name === 'AbortError');
       return {
@@ -225,22 +229,26 @@
           ? 'timeout after ' + timeoutMs + 'ms'
           : 'network error: ' + String((err && err.message) || err)
       };
-    } finally {
-      clearTimeout(timer);
     }
 
+    // Timer stays armed through the body read: a server that returns headers
+    // then stalls the body would otherwise hang the attempt forever.
     if (res.ok) {
       let data;
       try {
         data = await res.json();
       } catch (e) {
-        return { retryable: true, reason: 'unreadable response body' };
+        return { retryable: true, reason: controller.signal.aborted
+          ? 'timeout reading response body' : 'unreadable response body' };
+      } finally {
+        clearTimeout(timer);
       }
       return { ok: true, raw: extractText(data) };
     }
 
     const status = res.status;
-    const apiMsg = await readApiError(res);
+    let apiMsg;
+    try { apiMsg = await readApiError(res); } finally { clearTimeout(timer); }
     const reason = 'HTTP ' + status + (apiMsg ? ': ' + apiMsg : '');
 
     if (status === 429 || status >= 500) {

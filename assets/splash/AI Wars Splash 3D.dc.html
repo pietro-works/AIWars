@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&amp;display=swap" rel="stylesheet">
+<style>
+html, body { margin: 0; padding: 0; background: #030109; overflow: hidden; }
+@keyframes awCursorBlink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }
+</style>
+</helmet>
+<div id="aw-root" data-screen-label="AI Wars Splash 3D" style="position: fixed; inset: 0; background: #030109; overflow: hidden; cursor: pointer; user-select: none;">
+  <div id="aw-stage" style="position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform: translate(-50%, -50%) scale(0.5); perspective: 1400px; perspective-origin: 50% 51.4%; pointer-events: none; will-change: transform, filter;">
+    <div id="aw-world" style="position: absolute; left: 0px; top: 0px; width: 1920px; height: 1080px; transform-style: preserve-3d; will-change: transform;">
+
+      <div id="aw-space" data-z="-960" style="position: absolute; left: -500px; top: -320px; width: 2920px; height: 1720px; background: radial-gradient(ellipse 60% 50% at 50% 42%, #150440, #070214 62%, #030109 88%); opacity: 0; will-change: transform, opacity;"></div>
+      <div id="aw-starA" data-z="-880" style="position: absolute; left: 0px; top: 0px; width: 2px; height: 2px; background: transparent; will-change: opacity;"></div>
+      <div id="aw-starB" data-z="-720" style="position: absolute; left: 0px; top: 0px; width: 2px; height: 2px; background: transparent; will-change: opacity;"></div>
+
+      <div id="aw-gridwrap" data-z="-620" style="position: absolute; left: -190px; top: -105px; width: 2300px; height: 1290px; will-change: transform;">
+        <img id="aw-grid" src="layers/BG_Grid.png" draggable="false" style="position: absolute; left: 0px; top: 0px; width: 2300px; height: 1290px; opacity: 0; will-change: opacity;" alt="grid">
+        <img id="aw-gridlines" src="layers/BG_Grid.png" draggable="false" aria-hidden="true" style="position: absolute; left: 0px; top: 0px; width: 2300px; height: 1290px; opacity: 0; filter: brightness(1.8) saturate(1.35); mask-size: 100% 100%; -webkit-mask-size: 100% 100%; mask-mode: luminance, alpha; -webkit-mask-composite: source-in; mask-composite: intersect; will-change: opacity, filter;" alt="">
+        <img id="aw-gridglow" src="layers/BG_Grid.png" draggable="false" aria-hidden="true" style="position: absolute; left: 0px; top: 0px; width: 2300px; height: 1290px; opacity: 0; filter: brightness(2.6) saturate(1.5) blur(2px); mask-size: 100% 100%; -webkit-mask-size: 100% 100%; mask-mode: luminance, alpha; -webkit-mask-composite: source-in; mask-composite: intersect; will-change: opacity;" alt="">
+      </div>
+
+      <img id="aw-defaultcore" data-z="-430" data-anim="corebldg" src="layers/Stage_Default_Core.png" draggable="false" style="position: absolute; left: 1507px; top: 865px; width: 217px; height: 240px; will-change: transform;" alt="default core">
+      <img id="aw-defcar" data-z="-410" data-anim="car" src="layers/Stage_Defense_Car.png" draggable="false" style="position: absolute; left: 466px; top: 702px; width: 122px; height: 78px; will-change: transform;" alt="defense car">
+      <img id="aw-burgA" data-z="-390" data-anim="burger" src="layers/Stage_Burger.png" draggable="false" style="position: absolute; left: 705px; top: 258px; width: 90px; height: 86px; will-change: transform;" alt="burger">
+      <img id="aw-flopA" data-z="-380" data-anim="floppy" src="layers/Stage_Floppy.png" draggable="false" style="position: absolute; left: 399px; top: 241px; width: 107px; height: 102px; will-change: transform;" alt="floppy">
+      <img id="aw-debA" data-z="-370" data-anim="debris" src="layers/Stage_Debris.png" draggable="false" style="position: absolute; left: 1411px; top: 751px; width: 75px; height: 62px; will-change: transform;" alt="debris">
+      <img id="aw-debB" data-z="-360" data-anim="debris" src="layers/Stage_Debris_copy_2.png" draggable="false" style="position: absolute; left: 1488px; top: 343px; width: 43px; height: 39px; will-change: transform;" alt="debris">
+      <img id="aw-debC" data-z="-350" data-anim="debris" src="layers/Stage_Debris_copy_5.png" draggable="false" style="position: absolute; left: 428px; top: 363px; width: 37px; height: 49px; will-change: transform;" alt="debris">
+      <img id="aw-debD" data-z="-340" data-anim="debris" src="layers/Stage_Debris_copy_4.png" draggable="false" style="position: absolute; left: 321px; top: 633px; width: 45px; height: 42px; will-change: transform;" alt="debris">
+      <img id="aw-debE" data-z="-330" data-anim="debris" src="layers/Stage_Debris_1.png" draggable="false" style="position: absolute; left: 1270px; top: 788px; width: 67px; height: 64px; will-change: transform;" alt="debris">
+      <img id="aw-debF" data-z="-320" data-anim="debris" src="layers/Stage_Debris_copy_3.png" draggable="false" style="position: absolute; left: 1579px; top: 443px; width: 44px; height: 53px; will-change: transform;" alt="debris">
+      <img id="aw-debG" data-z="-310" data-anim="debris" src="layers/Stage_Debris_copy.png" draggable="false" style="position: absolute; left: 290px; top: 454px; width: 67px; height: 64px; will-change: transform;" alt="debris">
+      <img id="aw-flopB" data-z="-300" data-anim="floppy" src="layers/Stage_Floppy_1.png" draggable="false" style="position: absolute; left: 829px; top: 733px; width: 177px; height: 163px; will-change: transform;" alt="floppy">
+      <img id="aw-debH" data-z="-290" data-anim="debris" src="layers/Stage_Small_Debris.png" draggable="false" style="position: absolute; left: 546px; top: 932px; width: 36px; height: 29px; will-change: transform;" alt="small debris">
+      <img id="aw-burgB" data-z="-280" data-anim="burger" src="layers/Stage_Small_Burger.png" draggable="false" style="position: absolute; left: 50px; top: 572px; width: 56px; height: 50px; will-change: transform;" alt="small burger">
+      <img id="aw-burgC" data-z="-270" data-anim="burger" src="layers/Stage_Small_Burger_copy.png" draggable="false" style="position: absolute; left: 1248px; top: 902px; width: 56px; height: 50px; will-change: transform;" alt="small burger">
+      <img id="aw-flopC" data-z="-260" data-anim="floppy" src="layers/Stage_Floppy_2.png" draggable="false" style="position: absolute; left: 129px; top: 491px; width: 136px; height: 130px; will-change: transform;" alt="floppy">
+      <img id="aw-burgD" data-z="-250" data-anim="burger" src="layers/Stage_Burger_1.png" draggable="false" style="position: absolute; left: 1691px; top: 326px; width: 132px; height: 138px; will-change: transform;" alt="burger">
+      <img id="aw-burgE" data-z="-240" data-anim="burger" src="layers/Stage_Burger_copy.png" draggable="false" style="position: absolute; left: 638px; top: 952px; width: 77px; height: 81px; will-change: transform;" alt="burger">
+      <img id="aw-flopD" data-z="-230" data-anim="floppy" src="layers/Stage_Floppy_3.png" draggable="false" style="position: absolute; left: 1669px; top: 494px; width: 130px; height: 131px; will-change: transform;" alt="floppy">
+      <img id="aw-burgF" data-z="-220" data-anim="burger" src="layers/Stage_Burger_2.png" draggable="false" style="position: absolute; left: 1032px; top: 790px; width: 112px; height: 139px; will-change: transform;" alt="burger">
+
+      <img id="aw-defensecore" data-z="-205" data-anim="corebldg" src="layers/Stage_Defense_Core.png" draggable="false" style="position: absolute; left: 727px; top: 19px; width: 201px; height: 239px; will-change: transform, filter;" alt="defense core">
+      <img id="aw-attackcar" data-z="-195" data-anim="attackcar" src="layers/Stage_Attack_Car.png" draggable="false" style="position: absolute; left: 271px; top: 756px; width: 347px; height: 182px; will-change: transform;" alt="attack car">
+
+      <div id="aw-shipwrap" data-z="-180" style="position: absolute; left: 253px; top: 17px; width: 443px; height: 331px; will-change: transform;">
+        <div id="aw-shipglow" style="position: absolute; inset: -46px; background: radial-gradient(ellipse 60% 55% at 50% 55%, rgba(96, 176, 255, 0.30), rgba(96, 176, 255, 0) 70%); opacity: 0.5;"></div>
+        <img id="aw-ship" src="layers/Stage_Attack_Ship.png" draggable="false" style="position: absolute; left: 0px; top: 0px; width: 443px; height: 331px; will-change: filter;" alt="attack ship">
+        <img id="aw-spark0" src="layers/Hero_Lightning_Arc.png" draggable="false" style="position: absolute; left: 40px; top: 10px; width: 86px; height: 60px; opacity: 0; filter: brightness(2.4) saturate(0.4) hue-rotate(160deg);" alt="">
+        <img id="aw-spark1" src="layers/Hero_Lightning_Arc.png" draggable="false" style="position: absolute; left: 300px; top: 190px; width: 74px; height: 52px; opacity: 0; filter: brightness(2.4) saturate(0.4) hue-rotate(160deg);" alt="">
+      </div>
+
+      <img id="aw-kidBR" data-z="-150" data-anim="kid" src="layers/Kids_Bottom_Right_Kid.png" draggable="false" style="position: absolute; left: 1370px; top: 672px; width: 521px; height: 406px; will-change: transform;" alt="kid bottom right">
+      <img id="aw-kidTR" data-z="-142" data-anim="kid" src="layers/Kids_Top_Right_Kid.png" draggable="false" style="position: absolute; left: 1484px; top: 29px; width: 367px; height: 350px; will-change: transform;" alt="kid top right">
+      <img id="aw-kidTL" data-z="-134" data-anim="kid" src="layers/Kids_Top_Left_Kid.png" draggable="false" style="position: absolute; left: 66px; top: 54px; width: 313px; height: 400px; will-change: transform;" alt="kid top left">
+      <img id="aw-kidBL" data-z="-126" data-anim="kid" src="layers/Kids_Bottom_Left_Kid.png" draggable="false" style="position: absolute; left: 20px; top: 664px; width: 429px; height: 416px; will-change: transform;" alt="kid bottom left">
+
+      <img id="aw-txtShare" data-z="-95" src="layers/Text_Shareware.png" draggable="false" style="position: absolute; left: 786px; top: 940px; width: 418px; height: 105px; will-change: opacity;" alt="shareware notice">
+      <img id="aw-txtNoRef" data-z="-90" data-anim="sign" src="layers/Text_Text_No_Refunds.png" draggable="false" style="position: absolute; left: 54px; top: 924px; width: 231px; height: 115px; will-change: transform;" alt="no refunds">
+      <img id="aw-txtCTA" data-z="-85" src="layers/Text_Text_Register_CTA.png" draggable="false" style="position: absolute; left: 598px; top: 851px; width: 829px; height: 61px; will-change: opacity;" alt="register CTA">
+      <img id="aw-txtFuture" data-z="-80" data-anim="sign" src="layers/Text_Text_Future_Not_Backed_Up.png" draggable="false" style="position: absolute; left: 1609px; top: 907px; width: 253px; height: 123px; will-change: transform;" alt="future not backed up">
+
+      <img id="aw-worker" data-z="-60" src="layers/Hero_Attack_Worker.png" draggable="false" style="position: absolute; left: 1058px; top: 76px; width: 265px; height: 171px; transform-origin: 20% 85%; will-change: transform;" alt="attack worker">
+
+      <div id="aw-arcbg" data-z="-50" style="position: absolute; left: 790px; top: 370px; width: 520px; height: 360px; background: radial-gradient(closest-side, rgba(120, 190, 255, 0.30), rgba(120, 190, 255, 0) 72%); opacity: 0.35; will-change: opacity;"></div>
+      <img id="aw-arcglow" data-z="-46" src="layers/Hero_Lightning_Arc.png" draggable="false" style="position: absolute; left: 968px; top: 474px; width: 192px; height: 135px; filter: blur(7px) brightness(2.2) saturate(0.5) hue-rotate(165deg); opacity: 0.6; will-change: transform, opacity;" alt="">
+      <img id="aw-arc" data-z="-44" src="layers/Hero_Lightning_Arc.png" draggable="false" style="position: absolute; left: 968px; top: 474px; width: 192px; height: 135px; filter: brightness(1.9) saturate(0.55) hue-rotate(170deg); will-change: transform, opacity, filter;" alt="lightning arc">
+
+      <img id="aw-brainO" data-z="-20" src="layers/Hero_Orange_Brain_AI.png" draggable="false" style="position: absolute; left: 373px; top: 323px; width: 656px; height: 469px; will-change: transform, filter;" alt="orange brain AI">
+      <img id="aw-heroburger" data-z="-14" data-anim="burger" src="layers/Hero_Burger.png" draggable="false" style="position: absolute; left: 650px; top: 724px; width: 152px; height: 137px; will-change: transform;" alt="hero burger">
+      <img id="aw-claw" data-z="-8" src="layers/Hero_Blue_Brain_Claw.png" draggable="false" style="position: absolute; left: 1040px; top: 282px; width: 423px; height: 200px; transform-origin: 91% 75%; will-change: transform;" alt="blue brain claw">
+      <img id="aw-brainB" data-z="0" src="layers/Hero_Blue_Brain_AI.png" draggable="false" style="position: absolute; left: 1021px; top: 420px; width: 623px; height: 445px; will-change: transform, filter;" alt="blue brain AI">
+      <img id="aw-attackcore" data-z="30" src="layers/Hero_Attack_Core.png" draggable="false" style="position: absolute; left: 840px; top: -82px; width: 595px; height: 349px; transform-origin: 10% 32%; will-change: transform, filter;" alt="attack core">
+
+      <div id="aw-logowrap" data-z="230" style="position: absolute; left: 536px; top: 176px; width: 951px; height: 172px; opacity: 0; will-change: transform, opacity;">
+        <img id="aw-logo" src="layers/Hero_Logo.png" draggable="false" style="position: absolute; left: 0px; top: 0px; width: 951px; height: 172px;" alt="AI WARS">
+        <div id="aw-sheen" style="position: absolute; left: 0px; top: 0px; width: 951px; height: 172px; background: linear-gradient(115deg, rgba(255, 255, 255, 0) 42%, rgba(170, 235, 255, 0.55) 48%, rgba(255, 255, 255, 0.95) 50%, rgba(170, 235, 255, 0.55) 52%, rgba(255, 255, 255, 0) 58%); background-size: 320% 100%; background-position: 160% 0%; -webkit-mask-image: url('layers/Hero_Logo.png'); mask-image: url('layers/Hero_Logo.png'); -webkit-mask-size: 100% 100%; mask-size: 100% 100%; opacity: 0.9;"></div>
+        <div id="aw-shock" style="position: absolute; left: 50%; top: 50%; width: 460px; height: 170px; margin-left: -230px; margin-top: -85px; border: 5px solid rgba(160, 225, 255, 0.9); border-radius: 50%; opacity: 0; will-change: transform, opacity;"></div>
+      </div>
+
+      <div id="aw-ctaswap" data-z="232" style="position: absolute; left: 598px; top: 851px; width: 829px; height: 61px; opacity: 0; background: #030f06; border: 3px solid #2f9e43; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 12px; font-family: 'Press Start 2P', monospace; font-size: 21px; color: #56f45c; text-shadow: 0 0 6px rgba(86, 244, 92, 0.6);">
+        <span>&gt; PRESS ANY KEY TO BEGIN</span>
+        <span style="display: inline-block; width: 14px; height: 24px; background: #56f45c; animation: awCursorBlink 1.05s steps(1) infinite;"></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="aw-card" style="position: absolute; left: 50%; bottom: 13vh; transform: translateX(-50%); z-index: 66; font-family: 'Press Start 2P', monospace; font-size: clamp(13px, 2.1vmin, 26px); letter-spacing: 2px; color: #cfe7ff; text-shadow: 0 3px 0 #000, 0 0 18px rgba(120, 190, 255, 0.35); white-space: nowrap; opacity: 0; will-change: opacity, transform;"></div>
+
+  <div id="aw-flashW" style="position: absolute; inset: 0; z-index: 70; background: #eaf6ff; opacity: 0; pointer-events: none;"></div>
+  <div id="aw-flashB" style="position: absolute; inset: 0; z-index: 69; background: #000; opacity: 0; pointer-events: none;"></div>
+
+  <div id="aw-boot" style="position: absolute; inset: 0; z-index: 75; background: #02030a; display: flex; align-items: flex-start; justify-content: flex-start; padding: 7vh 7vw; box-sizing: border-box; font-family: 'Press Start 2P', monospace; font-size: clamp(11px, 1.8vmin, 22px); line-height: 2.3; color: #56f45c; text-shadow: 0 0 8px rgba(86, 244, 92, 0.4); white-space: pre-wrap; opacity: 1;"></div>
+
+  <div style="position: absolute; right: 18px; top: 18px; z-index: 80; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+    <div id="aw-sndbtn" role="button" aria-label="toggle sound" title="sound" style="width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; background: rgba(8, 5, 22, 0.65); border: 2px solid rgba(255, 208, 2, 0.35); cursor: pointer; user-select: none;">
+      <svg id="aw-sndicon" width="22" height="22" viewBox="0 0 16 16" aria-hidden="true" style="pointer-events: none; display: block; shape-rendering: crispEdges; opacity: 0.55;">
+        <g fill="#ffd002">
+          <rect x="1" y="6" width="3" height="4"></rect>
+          <rect x="4" y="5" width="1" height="6"></rect>
+          <rect x="5" y="4" width="1" height="8"></rect>
+          <rect x="6" y="3" width="1" height="10"></rect>
+          <rect x="7" y="2" width="1" height="12"></rect>
+        </g>
+        <g fill="#fff702">
+          <rect x="1" y="6" width="3" height="1"></rect>
+          <rect x="7" y="2" width="1" height="3"></rect>
+        </g>
+        <g id="aw-sndwaves" fill="#ffd002" style="display: none;">
+          <rect x="10" y="5" width="1" height="2"></rect>
+          <rect x="11" y="7" width="1" height="2"></rect>
+          <rect x="10" y="9" width="1" height="2"></rect>
+          <rect x="12" y="3" width="1" height="2"></rect>
+          <rect x="13" y="5" width="1" height="6"></rect>
+          <rect x="12" y="11" width="1" height="2"></rect>
+        </g>
+        <g id="aw-sndstrike" fill="#fff702">
+          <rect x="11" y="2" width="2" height="2"></rect>
+          <rect x="9" y="4" width="2" height="2"></rect>
+          <rect x="7" y="6" width="2" height="2"></rect>
+          <rect x="5" y="8" width="2" height="2"></rect>
+          <rect x="3" y="10" width="2" height="2"></rect>
+          <rect x="1" y="12" width="2" height="2"></rect>
+        </g>
+      </svg>
+    </div>
+    <div id="aw-skipbtn" role="button" aria-label="skip intro" title="skip intro" style="width: 46px; height: 46px; display: none; align-items: center; justify-content: center; background: rgba(8, 5, 22, 0.65); border: 2px solid rgba(255, 208, 2, 0.35); cursor: pointer; user-select: none;">
+      <svg width="30" height="30" viewBox="0 0 16 16" aria-hidden="true" style="pointer-events: none; display: block; shape-rendering: crispEdges;">
+        <g fill="#ffd002">
+          <rect x="1" y="4" width="2" height="8"></rect>
+          <rect x="3" y="5" width="1" height="6"></rect>
+          <rect x="4" y="6" width="1" height="4"></rect>
+          <rect x="5" y="7" width="1" height="2"></rect>
+          <rect x="7" y="4" width="2" height="8"></rect>
+          <rect x="9" y="5" width="1" height="6"></rect>
+          <rect x="10" y="6" width="1" height="4"></rect>
+          <rect x="11" y="7" width="1" height="2"></rect>
+          <rect x="13" y="4" width="2" height="8"></rect>
+        </g>
+        <g fill="#fff702">
+          <rect x="1" y="4" width="2" height="1"></rect>
+          <rect x="7" y="4" width="2" height="1"></rect>
+          <rect x="13" y="4" width="2" height="1"></rect>
+        </g>
+      </svg>
+    </div>
+    <div id="aw-replaybtn" role="button" aria-label="replay intro" title="replay intro" style="width: 46px; height: 46px; display: none; align-items: center; justify-content: center; background: rgba(8, 5, 22, 0.65); border: 2px solid rgba(255, 208, 2, 0.35); cursor: pointer; user-select: none;">
+      <svg width="30" height="30" viewBox="0 0 16 16" aria-hidden="true" style="pointer-events: none; display: block; shape-rendering: crispEdges;">
+        <g fill="#ffd002">
+          <rect x="3" y="3" width="8" height="2"></rect>
+          <rect x="3" y="5" width="2" height="6"></rect>
+          <rect x="3" y="11" width="10" height="2"></rect>
+          <rect x="12" y="8" width="2" height="3"></rect>
+          <rect x="11" y="1" width="2" height="2"></rect>
+          <rect x="11" y="5" width="2" height="2"></rect>
+          <rect x="13" y="3" width="2" height="2"></rect>
+        </g>
+        <g fill="#fff702">
+          <rect x="3" y="3" width="8" height="1"></rect>
+        </g>
+      </svg>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script>
+/* AW_MUSIC_INJECT — composer artifact ".company/artifacts/splash-music.js" gets
+   inlined here verbatim when delivered. It must expose
+   window.AW_MUSIC = { start(ctx?, dest?), stop(fadeSec?), setMuted(bool) }.
+   Until then the guarded AW_MUSIC calls in toggleSound()/begin() no-op safely. */
+/* AW_MUSIC — AI Wars 3D splash opening theme: "BREACH PROTOCOL".
+   DOOM-DOS-opening vibe, ORIGINAL composition (no existing melody quoted):
+   E-minor blues scale (E G A Bb B D), 168 BPM, gallop triangle chug bass,
+   ascending stab riff (inverse contour of the classic pedal-descent figure),
+   4-on-floor kick + backbeat snare + off-8th hats, Em arp shimmer.
+   Anti-fatigue: 4-pass variation cycle — pass0 core, pass1 +arp,
+   pass2 riff up an octave, pass3 breakdown (riff drops out bars 1-4).
+   Chris-Wilson lookahead scheduler (25ms interval, 0.12s ahead), self-heals
+   after background-tab throttling; bus fades to silence while hidden.
+   Contract: window.AW_MUSIC = { start(ctx?, dest?), stop(fadeSec?),
+   setMuted(bool) } — idempotent, click-free, never throws. */
+(function (g) {
+  'use strict';
+  if (g.AW_MUSIC) return; // double-load guard: first definition wins
+
+  var noop = function () {};
+  var AC = g.AudioContext || g.webkitAudioContext;
+  if (typeof AC !== 'function') {
+    // bare Node / no WebAudio: full no-op surface, same shape
+    g.AW_MUSIC = { start: noop, stop: noop, setMuted: noop };
+    return;
+  }
+
+  // ---- transport ----------------------------------------------------------
+  var BPM = 168;
+  var STEP = 60 / BPM / 4;        // 16th-note grid
+  var PASS_STEPS = 128;           // 8 bars of 16ths per pass
+  var LOOKAHEAD_MS = 25;
+  var AHEAD = 0.12;               // schedule horizon (s)
+  var BUS_GAIN = 0.9;             // into splash master(0.22) -> lp(6800)
+
+  // ---- state ---------------------------------------------------------------
+  var ctx = null, dest = null, bus = null, noiseBuf = null;
+  var ownCtx = false;             // we created ctx (no args given to start)
+  var timer = null, running = false, mutedF = false;
+  var step = 0, nextTime = 0;
+
+  // ---- note table (Hz) -----------------------------------------------------
+  var E1 = 41.20, E2 = 82.41, G2 = 98.00, A2 = 110.00, Bb2 = 116.54;
+  var D3 = 146.83, E3 = 164.81, G3 = 196.00, A3 = 220.00, Bb3 = 233.08, B3 = 246.94;
+  var E4 = 329.63, G4 = 392.00, B4 = 493.88, E5 = 659.26;
+
+  // Bass roots per bar/beat: pedal-E chug, bar4 walks G-A, bar8 climbs the b5.
+  var ROOTS = [
+    [E2, E2, E2, E2],
+    [E2, E2, E2, E2],
+    [E2, E2, E2, E2],
+    [E2, E2, G2, A2],
+    [E2, E2, E2, E2],
+    [E2, E2, E2, E2],
+    [E2, E2, E2, E2],
+    [E2, G2, Bb2, A2]
+  ];
+
+  // Riff: AABA' of 2-bar phrases, keyed by 16th step. [freq, dur s, vibrato c].
+  // Ascending E-G-A(-Bb-B) stabs with held peaks — original figure.
+  var RIFF = {};
+  function ph(off, list) {
+    for (var i = 0; i < list.length; i++) {
+      var n = list[i];
+      RIFF[off + n[0]] = [n[1], n[2], n[3] || 0];
+    }
+  }
+  var P1 = [[0, E3, 0.11], [4, E3, 0.11], [8, G3, 0.11], [12, E3, 0.11],
+            [16, A3, 0.30, 8], [24, G3, 0.11], [28, E3, 0.11]];
+  var P2 = [[0, E3, 0.11], [4, G3, 0.11], [8, A3, 0.11], [12, Bb3, 0.11],
+            [16, A3, 0.30, 8], [24, G3, 0.11], [28, D3, 0.13]];
+  var P3 = [[0, E3, 0.11], [4, G3, 0.11], [8, A3, 0.11], [12, Bb3, 0.11],
+            [16, B3, 0.55, 9], [24, A3, 0.11], [28, G3, 0.13]];
+  ph(0, P1); ph(32, P2); ph(64, P1); ph(96, P3);
+
+  var ARP = [E4, G4, B4, E5, B4, G4]; // Em shimmer, 16ths
+
+  // ---- voices (all schedule at absolute time t, route into bus) ------------
+  function tone(o) {
+    if (!ctx || !bus) return;
+    try {
+      var t0 = o.at;
+      var dur = o.dur || 0.1;
+      var attack = o.attack != null ? o.attack : 0.008;
+      var end = t0 + Math.max(dur, attack + 0.06); // >=60ms decay kills clicks
+      var peak = Math.max(0.0002, (o.gain || 0.06) * (1 + (Math.random() * 2 - 1) * 0.08));
+
+      var env = ctx.createGain();
+      env.gain.setValueAtTime(0.0001, t0);
+      env.gain.exponentialRampToValueAtTime(peak, t0 + attack);
+      env.gain.exponentialRampToValueAtTime(0.0001, end);
+
+      var lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = o.lpf || 2600;
+      env.connect(lp); lp.connect(bus);
+
+      var oscs = [];
+      function mk(type, cents, into) {
+        var osc = ctx.createOscillator();
+        osc.type = type;
+        if (cents) osc.detune.value = cents;
+        osc.frequency.setValueAtTime(o.freq, t0);
+        if (o.freqEnd) osc.frequency.exponentialRampToValueAtTime(o.freqEnd, t0 + dur);
+        osc.connect(into);
+        osc.start(t0); osc.stop(end + 0.05);
+        oscs.push(osc);
+      }
+      var type = o.type || 'triangle';
+      if (o.pair) { mk(type, 4, env); mk(type, -4, env); }
+      else mk(type, 0, env);
+
+      if (o.square) { // color layer only: 0.3x gain, own lowpass <=2.4k
+        var cg = ctx.createGain(); cg.gain.value = 0.3;
+        var clp = ctx.createBiquadFilter();
+        clp.type = 'lowpass'; clp.frequency.value = 2400;
+        clp.connect(cg); cg.connect(env);
+        mk('square', 0, clp);
+      }
+      if (o.vib) {
+        var lfo = ctx.createOscillator();
+        lfo.frequency.value = 5.5;
+        var lg = ctx.createGain(); lg.gain.value = o.vib;
+        lfo.connect(lg);
+        for (var i = 0; i < oscs.length; i++) lg.connect(oscs[i].detune);
+        lfo.start(t0); lfo.stop(end + 0.05);
+      }
+    } catch (e) { /* never let music kill the splash */ }
+  }
+
+  function nz(o) { // filtered noise (snare/hat) from the shared buffer
+    if (!ctx || !bus || !noiseBuf) return;
+    try {
+      var t0 = o.at;
+      var dur = o.dur || 0.06;
+      var end = t0 + Math.max(dur, 0.065);
+      var peak = Math.max(0.0002, (o.gain || 0.03) * (1 + (Math.random() * 2 - 1) * 0.08));
+      var src = ctx.createBufferSource();
+      src.buffer = noiseBuf; src.loop = true;
+      var f = ctx.createBiquadFilter();
+      f.type = o.filter || 'bandpass';
+      f.frequency.value = o.freq || 1100;
+      if (o.q) f.Q.value = o.q;
+      var env = ctx.createGain();
+      env.gain.setValueAtTime(0.0001, t0);
+      env.gain.exponentialRampToValueAtTime(peak, t0 + 0.003);
+      env.gain.exponentialRampToValueAtTime(0.0001, end);
+      src.connect(f); f.connect(env); env.connect(bus);
+      src.start(t0); src.stop(end + 0.05);
+    } catch (e) { /* no-op */ }
+  }
+
+  function kick(t)      { tone({ type: 'sine', freq: 150, freqEnd: 50, dur: 0.09, gain: 0.10, attack: 0.003, lpf: 700, at: t }); }
+  function snare(t, gn) { nz({ at: t, dur: 0.09, gain: gn, filter: 'bandpass', freq: 1100, q: 1 }); }
+  function hat(t)       { nz({ at: t, dur: 0.03, gain: 0.016, filter: 'highpass', freq: 5500 }); }
+
+  // ---- one 16th step of the pattern ----------------------------------------
+  function scheduleStep(s, t, pass) {
+    var bar = s >> 4, beat = (s >> 2) & 3, sub = s & 3;
+    var v = pass & 3; // variation phase 0..3
+
+    // BASS — gallop chug: accent 8th + two 16ths per beat, triangle pair.
+    var root = ROOTS[bar][beat];
+    if (sub === 0)      tone({ type: 'triangle', freq: root, dur: 0.09, gain: 0.105, attack: 0.004, lpf: 1400, pair: 1, at: t });
+    else if (sub >= 2)  tone({ type: 'triangle', freq: root, dur: 0.05, gain: 0.072, attack: 0.003, lpf: 1200, at: t });
+    if (s % 16 === 0)   tone({ type: 'sine', freq: root / 2, dur: 0.30, gain: 0.05, attack: 0.01, lpf: 300, at: t }); // sub anchor
+
+    // RIFF — drops out bars 1-4 on the breakdown pass; octave-up on pass 2.
+    var rn = RIFF[s];
+    if (rn && !(v === 3 && bar < 4)) {
+      var f = rn[0], gn = 0.07;
+      if (v === 2) { f *= 2; gn = 0.058; }
+      tone({ type: 'triangle', freq: f, dur: rn[1], gain: gn, attack: 0.008, lpf: 2600, pair: 1, square: 1, vib: rn[2], at: t });
+    }
+
+    // ARP shimmer — passes >=1, bars 5-6 and 8 (skips bar 7's Bb rub).
+    if (v >= 1 && (bar === 4 || bar === 5 || bar === 7)) {
+      tone({ type: 'triangle', freq: ARP[s % 6], dur: 0.07, gain: 0.026, attack: 0.004, lpf: 3400, at: t });
+    }
+
+    // PERC — 4-on-floor kick, backbeat snare, off-8th hats; bar 4/8 fills.
+    var fill = (bar === 3 || bar === 7) && beat === 3;
+    if (fill) {
+      if (pass % 2 === 0) snare(t, 0.028 + sub * 0.010);            // rising 16th build
+      else { if (sub % 2 === 0) kick(t); else snare(t, 0.045); }    // kick-snare trade
+    } else {
+      if (sub === 0) { kick(t); if (beat === 1 || beat === 3) snare(t, 0.05); }
+      if (sub === 2) hat(t);
+    }
+  }
+
+  // ---- lookahead scheduler (Chris Wilson two-clocks pattern) ---------------
+  function tick() {
+    if (!ctx || !running) return;
+    try {
+      // self-heal after background-tab interval throttling: never replay
+      // a backlog of missed steps, just re-anchor and continue the pattern.
+      if (nextTime < ctx.currentTime - 0.02) nextTime = ctx.currentTime + 0.05;
+      while (nextTime < ctx.currentTime + AHEAD) {
+        scheduleStep(step % PASS_STEPS, nextTime, Math.floor(step / PASS_STEPS));
+        nextTime += STEP;
+        step++;
+      }
+    } catch (e) { /* no-op */ }
+  }
+
+  // ---- public surface -------------------------------------------------------
+  function start(c, d) {
+    if (running) return; // idempotent: second start is a no-op
+    try {
+      if (c) { ctx = c; dest = d || ctx.destination; ownCtx = false; }
+      else {
+        // standalone fallback: own ctx + master(0.5) -> lowpass 6.8k -> out
+        if (!ctx || !ownCtx) {
+          ctx = new AC();
+          var lp = ctx.createBiquadFilter();
+          lp.type = 'lowpass'; lp.frequency.value = 6800;
+          lp.connect(ctx.destination);
+          var m = ctx.createGain(); m.gain.value = 0.5; m.connect(lp);
+          dest = m;
+          ownCtx = true;
+        }
+      }
+      if (ctx.state === 'suspended') { try { ctx.resume(); } catch (e) {} }
+      if (!noiseBuf || noiseBuf.sampleRate !== ctx.sampleRate) {
+        var len = Math.floor(ctx.sampleRate * 1);
+        noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
+        var dd = noiseBuf.getChannelData(0);
+        for (var i = 0; i < len; i++) dd[i] = Math.random() * 2 - 1;
+      }
+      bus = ctx.createGain();
+      bus.gain.value = mutedF ? 0.0001 : BUS_GAIN;
+      bus.connect(dest);
+      step = 0;
+      nextTime = ctx.currentTime + 0.08;
+      timer = setInterval(tick, LOOKAHEAD_MS);
+      running = true;
+    } catch (e) { running = false; }
+  }
+
+  function stop(fadeSec) {
+    if (!running) return; // idempotent: stop without start / double stop
+    running = false;
+    if (timer != null) { clearInterval(timer); timer = null; }
+    var b = bus; bus = null; // notes already scheduled ring into the fading bus
+    var fs = (typeof fadeSec === 'number' && fadeSec > 0) ? fadeSec : 0.8;
+    try {
+      var t = ctx.currentTime;
+      b.gain.cancelScheduledValues(t);
+      b.gain.setTargetAtTime(0.0001, t, Math.max(0.05, fs / 3)); // fade, no click
+    } catch (e) { /* no-op */ }
+    setTimeout(function () {
+      try { b.disconnect(); } catch (e) {}
+      if (ownCtx && ctx) { try { ctx.suspend(); } catch (e) {} }
+    }, (fs + 1.5) * 1000);
+  }
+
+  function setMuted(m) {
+    mutedF = !!m; // remembered pre-start; scheduler keeps running when live
+    if (bus && ctx) {
+      try {
+        var t = ctx.currentTime;
+        bus.gain.cancelScheduledValues(t);
+        bus.gain.setTargetAtTime(mutedF ? 0.0001 : BUS_GAIN, t, 0.03);
+      } catch (e) { /* no-op */ }
+    }
+  }
+
+  // Hidden tab: silence the bus (interval throttling would stutter anyway);
+  // tick() re-anchors the grid on return, so the pattern resumes cleanly.
+  if (g.document && typeof g.document.addEventListener === 'function') {
+    try {
+      g.document.addEventListener('visibilitychange', function () {
+        if (!bus || !ctx) return;
+        try {
+          var t = ctx.currentTime;
+          bus.gain.cancelScheduledValues(t);
+          if (g.document.hidden) bus.gain.setTargetAtTime(0.0001, t, 0.05);
+          else if (!mutedF)      bus.gain.setTargetAtTime(BUS_GAIN, t, 0.2);
+        } catch (e) { /* no-op */ }
+      });
+    } catch (e) { /* no-op */ }
+  }
+
+  g.AW_MUSIC = { start: start, stop: stop, setMuted: setMuted };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script type="text/x-dc" data-dc-script data-props="{&quot;explosionDrift&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:2,&quot;min&quot;:0,&quot;max&quot;:2,&quot;step&quot;:0.05,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;,&quot;description&quot;:&quot;How far everything floats outward from the blast center&quot;},&quot;arcActivity&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:3,&quot;min&quot;:0.25,&quot;max&quot;:3,&quot;step&quot;:0.05,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;,&quot;description&quot;:&quot;Lightning twitch + burst frequency&quot;},&quot;hoverEnergy&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:2,&quot;min&quot;:0,&quot;max&quot;:2,&quot;step&quot;:0.05,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;,&quot;description&quot;:&quot;Bob/hover amplitude for ship, brains and floaters&quot;},&quot;parallax&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:2,&quot;min&quot;:0,&quot;max&quot;:2,&quot;step&quot;:0.05,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;,&quot;description&quot;:&quot;Mouse + idle 3D camera parallax after the intro&quot;}}">
+class Component extends DCLogic {
+  componentDidMount() {
+    const $ = (id) => document.getElementById(id);
+    this.el = {
+      root: $('aw-root'), stage: $('aw-stage'), world: $('aw-world'),
+      gridwrap: $('aw-gridwrap'), grid: $('aw-grid'), gridlines: $('aw-gridlines'), gridglow: $('aw-gridglow'),
+      space: $('aw-space'), starA: $('aw-starA'), starB: $('aw-starB'),
+      arc: $('aw-arc'), arcglow: $('aw-arcglow'), arcbg: $('aw-arcbg'),
+      brainO: $('aw-brainO'), brainB: $('aw-brainB'), claw: $('aw-claw'),
+      shipwrap: $('aw-shipwrap'), ship: $('aw-ship'), shipglow: $('aw-shipglow'),
+      spark0: $('aw-spark0'), spark1: $('aw-spark1'),
+      attackcore: $('aw-attackcore'), worker: $('aw-worker'), defensecore: $('aw-defensecore'),
+      logowrap: $('aw-logowrap'), logo: $('aw-logo'), sheen: $('aw-sheen'), shock: $('aw-shock'),
+      txtCTA: $('aw-txtCTA'), ctaswap: $('aw-ctaswap'), txtShare: $('aw-txtShare'),
+      card: $('aw-card'), boot: $('aw-boot'),
+      flashW: $('aw-flashW'), flashB: $('aw-flashB'),
+      sndbtn: $('aw-sndbtn'), replaybtn: $('aw-replaybtn'), skipbtn: $('aw-skipbtn'),
+      sndicon: $('aw-sndicon'), sndwaves: $('aw-sndwaves'), sndstrike: $('aw-sndstrike')
+    };
+    this.VP = { x: 960, y: 555 };
+    this.PER = 1400;
+    this.reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // ---- 3D depth records: perspective-compensated so rest frame == design ----
+    this.rec = {};
+    document.querySelectorAll('#aw-world [data-z]').forEach((el) => {
+      this.rec[el.id] = this.makeRec(el, parseFloat(el.dataset.z));
+    });
+
+    // ---- starfields ----
+    const mkStars = (n, spread, colors) => {
+      const arr = [];
+      for (let i = 0; i < n; i++) {
+        const x = Math.round(-420 + Math.random() * 2740), y = Math.round(-300 + Math.random() * 1660);
+        const c = colors[(Math.random() * colors.length) | 0];
+        arr.push(x + 'px ' + y + 'px 0 ' + (Math.random() < 0.22 ? 1 : 0) + 'px ' + c);
+      }
+      return arr.join(',');
+    };
+    this.el.starA.style.boxShadow = mkStars(64, 0, ['#cdd6ff', '#8f9fd6', '#7de1ff', '#ffb46b']);
+    this.el.starB.style.boxShadow = mkStars(44, 0, ['#e6ecff', '#7de1ff', '#b48fff']);
+
+    // ---- floaters ----
+    const CFG = {
+      kid:    { amp: 55, wob: 13, wf: 0.16, spin: 0,   tumble: 9,   sk: 0.085, zb: 30 },
+      debris: { amp: 46, wob: 12, wf: 0.30, spin: 1.8, tumble: 0,   sk: 0.05, zb: 38 },
+      floppy: { amp: 34, wob: 11, wf: 0.24, spin: 0.8, tumble: 0,   sk: 0.05, zb: 34 },
+      burger: { amp: 30, wob: 12, wf: 0.21, spin: 0.5, tumble: 0,   sk: 0.05, zb: 34 },
+      car:    { amp: 16, wob: 4, wf: 0.18, spin: 0,   tumble: 2,   sk: 0.03, zb: 8 },
+      attackcar: { amp: 20, wob: 3, wf: 0.15, spin: 0, tumble: 0,  sk: 0.03, zb: 10 },
+      corebldg: { amp: 12, wob: 3, wf: 0.12, spin: 0,  tumble: 1.5, sk: 0.02 },
+      sign:   { amp: 0, wob: 2, wf: 0.11, spin: 0,    tumble: 2.2, sk: 0 }
+    };
+    this.items = [];
+    let idx = 0;
+    document.querySelectorAll('#aw-world [data-anim]').forEach((el) => {
+      const c = CFG[el.dataset.anim]; if (!c) return;
+      const cx = el.offsetLeft + el.offsetWidth / 2, cy = el.offsetTop + el.offsetHeight / 2;
+      let dx = cx - this.VP.x, dy = cy - this.VP.y;
+      const len = Math.max(60, Math.hypot(dx, dy)); dx /= len; dy /= len;
+      this.items.push({ el, rec: this.rec[el.id], c, dx, dy, zb: el.id === 'aw-heroburger' ? 0 : (c.zb || 0), ph: (idx * 2.399) % 6.283, sgn: (idx % 2 ? 1 : -1), distK: Math.min(1, len / 780) });
+      idx++;
+    });
+
+    // ---- motes (near-field dust for depth) ----
+    this.motes = [];
+    for (let i = 0; i < 20; i++) {
+      const d = document.createElement('div');
+      const col = ['#7de1ff', '#ff9a3d', '#e07bff', '#cfe7ff'][i % 4];
+      const size = 3 + ((i * 7) % 3) * 2;
+      d.style.cssText = 'position:absolute;width:' + size + 'px;height:' + size + 'px;background:' + col + ';box-shadow:0 0 8px ' + col + ';opacity:0.35;will-change:transform,opacity;';
+      const x = 60 + Math.random() * 1800, y = Math.random() * 1080;
+      d.style.left = x + 'px'; d.style.top = y + 'px';
+      this.el.world.appendChild(d);
+      const rec = this.makeRec(d, -160 + Math.random() * 380, x + size / 2, y + size / 2);
+      this.motes.push({ d, rec, seed: Math.random() * 1000, sp: 7 + Math.random() * 9 });
+    }
+
+    // ---- camera keyframes (world-space) ----
+    this.KF = [
+      { t: 0.0,  wx: -95, wy: -12, wz: 980, rx: 4,    ry: -13 },
+      { t: 1.5,  wx: -95, wy: -12, wz: 930, rx: 4,    ry: -11 },
+      { t: 4.0,  wx: -60, wy: -8,  wz: 560, rx: 2.5,  ry: -6 },
+      { t: 6.3,  wx: 40,  wy: 6,   wz: 300, rx: -2,   ry: 5.5 },
+      { t: 8.35, wx: 10,  wy: 2,   wz: 110, rx: 1.2,  ry: -2 },
+      { t: 9.55, wx: 0,   wy: 0,   wz: 0,   rx: 0,    ry: 0 }
+    ];
+    this.cam = { wx: -95, wy: -12, wz: 980, rx: 4, ry: -13 };
+    this.mouse = { x: 0, y: 0 };
+
+    // ---- story ----
+    this.BOOT = ['C:\\> RUN AIWARS.EXE', 'LOADING SARCASM.DLL ......... OK', 'CALIBRATING GRUDGES ......... OK', 'HUMAN INPUT ......... NOT REQUIRED'];
+    this.CARDS = [
+      { t0: 1.75, t1: 3.95, txt: 'SOMEWHERE IN A FORGOTTEN DATACENTER', say: 'somewhere... in a forgotten datacenter.' },
+      { t0: 4.25, t1: 6.25, txt: 'TWO AIs WAGE ETERNAL WAR', say: 'two A.I.s wage eternal war.' },
+      { t0: 6.6,  t1: 8.35, txt: 'OVER LITERALLY NOTHING', big: true, say: 'over. literally. nothing.' }
+    ];
+    this.SLAM_T = 8.55;
+
+    // ---- state ----
+    this.t0 = performance.now();
+    this.SETTLE = 10;
+    this.skipped = false;
+    this.shake = 0; this.shakeT = 0;
+    this.burstGlow = 0; this.lunge = 0; this.recoil = 0;
+    this.clawA = -4; this.clawV = 0; this.clawTarget = -4;
+    this.nextArcEv = 0.05; this.arcMode = { fx: 1, fy: 1, rot: 0, s: 1, bright: 1.9 };
+    this.nextBurst = 4.2; this.burstHold = 0;
+    this.forced = [2.2, 3.1, 7.2];
+    this.whooshes = [4.0, 6.3, 8.4];
+    this.nextSpark = 6.6; this.sparkT = [0, 0];
+    this.nextSheen = Infinity; this.sheenT = -1;
+    this.nextGlitch = 3.0; this.glitchT = 0;
+    this.nextErrFlick = 2.0; this.errT = 0;
+    this.smashPh = 0;
+    this.drops = [
+      { id: 'aw-defensecore', at: 9.15, H: 360 },
+      { id: 'aw-attackcore', at: 9.45, H: 390 },
+      { id: 'aw-worker', at: 9.75, H: 340 }
+    ];
+    this.dropMap = {}; this.drops.forEach((d) => { this.dropMap[d.id] = d; });
+    this.textsAt = { 'aw-txtShare': 10.7, 'aw-txtNoRef': 10.9, 'aw-txtFuture': 11.1 };
+    this.promptAt = 11.4;
+    this.logoZ = 900; this.logoV = 0; this.slamStarted = false; this.slamDone = false;
+    this.impactP = 0; this.impactAge = 9; this.kick = 0; this.shockT = -1;
+    this.bootDone = false;
+    this.promptOn = false; this.promptCycleT = 0; this.promptState = 0;
+    this.beginning = false; this.beginT = -1;
+    this.audio = null; this.muted = true;
+    this.lastZap = 0; this.lastBling = -10;
+    this._begun = false; this._lastToggleAt = -1000;
+
+    // ---- dark opening: grid forms from the void, stage lights up piece by piece ----
+    this.ARC_ON = 7.15;
+    this.RV = { w0: 1.6, w1: 5.0, base0: 4.5, base1: 5.9, lines1: 6.6, cx: 1150, cy: 693 };
+    this.thunder = [2.2, 3.1];
+    const LIT = [
+      ['aw-defaultcore', 3.05], ['aw-debA', 3.3], ['aw-debB', 3.45], ['aw-flopA', 3.6], ['aw-debC', 3.75], ['aw-debD', 3.9],
+      ['aw-burgA', 4.0], ['aw-debE', 4.15], ['aw-debF', 4.3], ['aw-debG', 4.45], ['aw-flopB', 4.55], ['aw-defcar', 4.65],
+      ['aw-debH', 4.75], ['aw-burgB', 4.85], ['aw-burgC', 5.0], ['aw-flopC', 5.1], ['aw-burgD', 5.25], ['aw-burgE', 5.35],
+      ['aw-flopD', 5.5], ['aw-burgF', 5.6], ['aw-attackcar', 5.7], ['aw-heroburger', 5.85], ['aw-ship', 5.95],
+      ['aw-kidBR', 6.1], ['aw-kidTR', 6.25], ['aw-kidTL', 6.4], ['aw-kidBL', 6.55],
+      ['aw-brainO', 6.7], ['aw-claw', 6.85], ['aw-brainB', 6.95]
+    ];
+    this.reveal = [];
+    LIT.forEach((r, k) => {
+      const el = document.getElementById(r[0]);
+      if (el) this.reveal.push({ el, at: r[1], dur: 0.5, ph: k * 1.7, cleared: false });
+    });
+    this.revealDone = false; this.gridDone = false;
+    this.spokenCard = null; this.voice = null;
+    this.initVoices();
+
+    if (this.reduced) {
+      this.t0 -= this.SETTLE * 1000;
+      this.finishCinematic();
+    }
+
+    // ---- events ----
+    this.onResize = () => {
+      const s = Math.min(innerWidth / 1920, innerHeight / 1080);
+      this.baseScale = s;
+      const pix = s >= 1 ? 'pixelated' : 'auto';
+      document.querySelectorAll('#aw-stage img').forEach(im => { im.style.imageRendering = pix; });
+    };
+    this.onResize();
+    addEventListener('resize', this.onResize);
+    this.onKey = () => { this.gesture(); };
+    this.onMove = (e) => {
+      this.mouse.x = (e.clientX / innerWidth) * 2 - 1;
+      this.mouse.y = (e.clientY / innerHeight) * 2 - 1;
+    };
+    this.onTap = (e) => {
+      /* closest(): the button has SVG children — a hit anywhere inside it must
+         toggle sound, never fall through to the begin/skip gate. skip/replay
+         buttons are retired in game-integration; snd is the only button. */
+      if (e.target.closest && e.target.closest('#aw-sndbtn')) { this.toggleSound(); return; }
+      this.gesture();
+    };
+    addEventListener('keydown', this.onKey);
+    this.el.root.addEventListener('pointerdown', this.onTap);
+    this.el.root.addEventListener('pointermove', this.onMove);
+
+    /* cross-frame protocol: in walled (file://) mode the parent's top-right
+       hotspot posts a toggle request; we always answer with the new state */
+    this.onMsg = (e) => {
+      const md = e && e.data;
+      if (md && md.type === 'aiwars:sndtoggle') this.toggleSound();
+    };
+    addEventListener('message', this.onMsg);
+
+    window.__awSeek = (s) => {
+      const cur = (performance.now() - this.t0) / 1000;
+      if (s < cur) this.replay();   /* rewind: full state reset, then jump */
+      this.t0 = performance.now() - s * 1000;
+    };
+    this.raf = requestAnimationFrame(this.tick.bind(this));
+  }
+
+  componentWillUnmount() {
+    cancelAnimationFrame(this.raf);
+    removeEventListener('resize', this.onResize);
+    removeEventListener('keydown', this.onKey);
+    removeEventListener('message', this.onMsg);
+    if (this.el && this.el.root) {
+      this.el.root.removeEventListener('pointerdown', this.onTap);
+      this.el.root.removeEventListener('pointermove', this.onMove);
+    }
+    this.stopSpeech();
+    if (this.audio) { try { this.audio.ctx.close(); } catch (e) {} }
+  }
+
+  // rec: perspective compensation so element at depth z projects exactly onto its design position
+  makeRec(el, z, cxOpt, cyOpt) {
+    const P = this.PER;
+    const cx = cxOpt != null ? cxOpt : el.offsetLeft + el.offsetWidth / 2;
+    const cy = cyOpt != null ? cyOpt : el.offsetTop + el.offsetHeight / 2;
+    const comp = (P - z) / P;
+    return { el, z, comp, bx: (cx - this.VP.x) * (-z / P), by: (cy - this.VP.y) * (-z / P) };
+  }
+
+  T(rec, x, y, rot, sx, sy, dz) {
+    rec.el.style.transform = 'translate3d(' + (rec.bx + (x || 0)) + 'px,' + (rec.by + (y || 0)) + 'px,' + (rec.z + (dz || 0)) + 'px) rotate(' + (rot || 0) + 'deg) scale(' + (rec.comp * (sx == null ? 1 : sx)) + ',' + (rec.comp * (sy == null ? sy = (sx == null ? 1 : sx) : sy)) + ')';
+  }
+
+  // ================== AUDIO ==================
+  initAudio() {
+    if (this.audio) return;
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const master = ctx.createGain(); master.gain.value = 0;
+      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 6800;
+      master.connect(lp); lp.connect(ctx.destination);
+      const humG = ctx.createGain(); humG.gain.value = 0.02;
+      const humLP = ctx.createBiquadFilter(); humLP.type = 'lowpass'; humLP.frequency.value = 320;
+      humG.connect(humLP); humLP.connect(master);
+      const mk = (f, g, type) => { const o = ctx.createOscillator(); o.type = type || 'sine'; o.frequency.value = f; const gg = ctx.createGain(); gg.gain.value = g; o.connect(gg); gg.connect(humG); o.start(); return o; };
+      mk(54, 0.9); mk(54.4, 0.7); mk(108, 0.28, 'triangle');
+      const lfo = ctx.createOscillator(); lfo.frequency.value = 0.06;
+      const lfoG = ctx.createGain(); lfoG.gain.value = 0.009;
+      lfo.connect(lfoG); lfoG.connect(humG.gain); lfo.start();
+      const nb = ctx.createBuffer(1, ctx.sampleRate * 0.25, ctx.sampleRate);
+      const d = nb.getChannelData(0);
+      for (let j = 0; j < d.length; j++) d[j] = (Math.random() * 2 - 1) * (1 - j / d.length);
+      this.audio = { ctx, master, noise: nb };
+    } catch (e) { this.audio = null; }
+  }
+
+  toggleSound() {
+    const nw = performance.now();
+    if (nw - this._lastToggleAt < 120) return;   /* double-fire guard: click + message race */
+    this._lastToggleAt = nw;
+    this.initAudio();
+    if (!this.audio) return;
+    this.muted = !this.muted;
+    if (this.audio.ctx.state === 'suspended') { try { this.audio.ctx.resume(); } catch (e) {} }
+    const g = this.audio.master.gain;
+    g.cancelScheduledValues(this.audio.ctx.currentTime);
+    g.setTargetAtTime(this.muted ? 0 : 0.22, this.audio.ctx.currentTime, 0.25);
+    this.syncSndIcon();
+    if (this.muted) {
+      this.stopSpeech();
+      try { if (window.AW_MUSIC) window.AW_MUSIC.setMuted(true); } catch (e) {}
+    } else {
+      if (!this._begun) {
+        /* start() no-ops when already running, so a re-unmute must reopen the
+           music bus explicitly or the theme stays gated at 0.0001 forever */
+        try { if (window.AW_MUSIC) window.AW_MUSIC.setMuted(false); } catch (e) {}
+        try { if (window.AW_MUSIC) window.AW_MUSIC.start(this.audio.ctx, this.audio.master); } catch (e) {}
+      }
+      if (!this.skipped && !this._begun) {
+        const tc = (performance.now() - this.t0) / 1000;
+        const c = this.CARDS.find((cc) => tc >= cc.t0 && tc < cc.t1);
+        if (c) { this.spokenCard = c; this.say(c.say || c.txt); }
+      }
+    }
+    /* walled-mode contract: the parent hotspot needs the authoritative state back */
+    try { parent.postMessage({ type: 'aiwars:sndstate', muted: this.muted }, '*'); } catch (e) {}
+  }
+
+  /* icon-state switch — style writes only, never rebuilds DOM */
+  syncSndIcon() {
+    if (!this.el || !this.el.sndicon || !this.el.sndwaves || !this.el.sndstrike) return;
+    const on = !this.muted;
+    this.el.sndwaves.style.display = on ? '' : 'none';
+    this.el.sndstrike.style.display = on ? 'none' : '';
+    this.el.sndicon.style.opacity = on ? '1' : '0.55';
+    this.el.sndicon.style.filter = on ? 'drop-shadow(0 0 4px rgba(255,208,2,0.8))' : 'none';
+    this.el.sndbtn.style.borderColor = on ? 'rgba(255,208,2,0.8)' : 'rgba(255,208,2,0.35)';
+    this.el.sndbtn.style.boxShadow = on ? '0 0 12px rgba(255,208,2,0.3)' : 'none';
+  }
+
+  // ================== ROBOT NARRATOR (speechSynthesis) ==================
+  initVoices() {
+    if (!('speechSynthesis' in window)) return;
+    const pick = () => {
+      const vs = speechSynthesis.getVoices();
+      if (!vs || !vs.length) return;
+      const rank = (v) => /zarvox|trinoids|albert/i.test(v.name) ? 0
+        : /google us english/i.test(v.name) ? 1
+        : /google uk english male/i.test(v.name) ? 2
+        : /^en/i.test(v.lang) ? 3 : 4;
+      this.voice = vs.slice().sort((a, b) => rank(a) - rank(b))[0];
+    };
+    pick();
+    try { speechSynthesis.addEventListener('voiceschanged', pick); } catch (e) { try { speechSynthesis.onvoiceschanged = pick; } catch (e2) {} }
+  }
+
+  say(txt) {
+    if (this.muted || !('speechSynthesis' in window)) return;
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(txt);
+      if (this.voice) u.voice = this.voice;
+      u.pitch = 0.25; u.rate = 0.92; u.volume = 0.9;
+      speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+
+  stopSpeech() { try { if ('speechSynthesis' in window) speechSynthesis.cancel(); } catch (e) {} }
+
+  zap(intens) {
+    if (!this.audio || this.muted) return;
+    const { ctx, master, noise } = this.audio;
+    const now = ctx.currentTime;
+    if (now - this.lastZap < 0.18) return;
+    this.lastZap = now;
+    const o = ctx.createOscillator(); o.type = 'triangle';
+    o.frequency.setValueAtTime(620 + Math.random() * 420, now);
+    o.frequency.exponentialRampToValueAtTime(130, now + 0.15);
+    const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 2100;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.001, now);
+    g.gain.exponentialRampToValueAtTime(0.11 * intens, now + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.19);
+    o.connect(f); f.connect(g); g.connect(master); o.start(now); o.stop(now + 0.22);
+    const n = ctx.createBufferSource(); n.buffer = noise;
+    const nf = ctx.createBiquadFilter(); nf.type = 'lowpass'; nf.frequency.value = 1600;
+    const ng = ctx.createGain();
+    ng.gain.setValueAtTime(0.045 * intens, now);
+    ng.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+    n.connect(nf); nf.connect(ng); ng.connect(master); n.start(now); n.stop(now + 0.14);
+  }
+
+  whoosh() {
+    if (!this.audio || this.muted) return;
+    const { ctx, master, noise } = this.audio;
+    const now = ctx.currentTime;
+    const n = ctx.createBufferSource(); n.buffer = noise; n.loop = true;
+    const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 0.8;
+    f.frequency.setValueAtTime(240, now);
+    f.frequency.exponentialRampToValueAtTime(900, now + 0.5);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.001, now);
+    g.gain.exponentialRampToValueAtTime(0.05, now + 0.22);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+    n.connect(f); f.connect(g); g.connect(master); n.start(now); n.stop(now + 0.65);
+  }
+
+  thud(k) {
+    k = k || 1;
+    if (!this.audio || this.muted) return;
+    const { ctx, master, noise } = this.audio;
+    const now = ctx.currentTime;
+    const o = ctx.createOscillator();
+    o.frequency.setValueAtTime(130, now);
+    o.frequency.exponentialRampToValueAtTime(38, now + 0.3);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.001, now);
+    g.gain.exponentialRampToValueAtTime(0.2 * k, now + 0.015);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.42);
+    o.connect(g); g.connect(master); o.start(now); o.stop(now + 0.45);
+    const n = ctx.createBufferSource(); n.buffer = noise;
+    const nf = ctx.createBiquadFilter(); nf.type = 'lowpass'; nf.frequency.value = 900;
+    const ng = ctx.createGain();
+    ng.gain.setValueAtTime(0.09 * k, now);
+    ng.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+    n.connect(nf); nf.connect(ng); ng.connect(master); n.start(now); n.stop(now + 0.22);
+  }
+
+  blip() {
+    if (!this.audio || this.muted) return;
+    const { ctx, master } = this.audio;
+    const now = ctx.currentTime;
+    const o = ctx.createOscillator(); o.type = 'square'; o.frequency.value = 740 + Math.random() * 160;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.001, now);
+    g.gain.exponentialRampToValueAtTime(0.025, now + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+    o.connect(g); g.connect(master); o.start(now); o.stop(now + 0.07);
+  }
+
+  bling() {
+    if (!this.audio || this.muted) return;
+    const { ctx, master } = this.audio;
+    const now = ctx.currentTime;
+    if (now - this.lastBling < 4) return;
+    this.lastBling = now;
+    [523.25, 784, 1046.5].forEach((f, k) => {
+      const o = ctx.createOscillator(); o.frequency.value = f;
+      const g = ctx.createGain();
+      const t = now + k * 0.07;
+      g.gain.setValueAtTime(0.001, t);
+      g.gain.exponentialRampToValueAtTime(0.03, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.34);
+      o.connect(g); g.connect(master); o.start(t); o.stop(t + 0.4);
+    });
+  }
+
+  beginChord() {
+    if (!this.audio || this.muted) return;
+    const { ctx, master } = this.audio;
+    const now = ctx.currentTime;
+    [220, 277.18, 330].forEach((f) => {
+      const o = ctx.createOscillator(); o.frequency.value = f;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.001, now);
+      g.gain.exponentialRampToValueAtTime(0.05, now + 0.05);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 1.3);
+      o.connect(g); g.connect(master); o.start(now); o.stop(now + 1.4);
+    });
+  }
+
+  // ================== FLOW ==================
+  gesture() {
+    this.initAudio();
+    /* message-driven unmute may have hit autoplay policy; a real gesture here
+       is the moment the browser lets us recover */
+    if (this.audio && !this.muted && this.audio.ctx.state === 'suspended') {
+      try { this.audio.ctx.resume(); } catch (e) {}
+    }
+    const t = (performance.now() - this.t0) / 1000;
+    if (!this.skipped && !this.reduced && t < 9.6) { this.skip(); return; }
+    if (this.promptOn && !this.beginning) this.begin();
+  }
+
+  finishCinematic() {
+    this.skipped = true;
+    this.el.boot.style.display = 'none';
+    this.bootDone = true;
+    this.el.card.style.opacity = '0';
+    this.slamStarted = true; this.slamDone = true;
+    this.logoZ = 230; this.logoV = 0;
+    this.el.logowrap.style.opacity = '1';
+    this.kick = 0; this.impactP = 0; this.impactAge = 9;
+    this.forced = []; this.whooshes = [];
+    const tNow = (performance.now() - this.t0) / 1000;
+    this.drops.forEach((d) => { d.at = -10; d.hit1 = d.hit2 = true; });
+    this.textsAt = { 'aw-txtShare': tNow - 1, 'aw-txtNoRef': tNow - 1, 'aw-txtFuture': tNow - 1 };
+    this.promptAt = tNow + 0.4;
+    this.cam = { wx: 0, wy: 0, wz: 0, rx: 0, ry: 0 };
+    this.el.flashW.style.opacity = '0'; this.el.flashB.style.opacity = '0';
+    this.revealDone = true; this.gridDone = true;
+    this.el.space.style.opacity = '1';
+    this.el.grid.style.opacity = '1';
+    const s1 = this.el.gridlines.style, s2 = this.el.gridglow.style;
+    s1.opacity = '0'; s2.opacity = '0';
+    s1.maskImage = 'none'; s1.webkitMaskImage = 'none';
+    s2.maskImage = 'none'; s2.webkitMaskImage = 'none';
+    this.reveal.forEach((r) => { r.el.style.filter = ''; r.cleared = true; });
+    this.stopSpeech();
+  }
+
+  skip() {
+    this.t0 = performance.now() - (this.SETTLE + 0.55) * 1000;
+    this.finishCinematic();
+    this.nextSheen = this.SETTLE + 1.2;
+  }
+
+  replay() {
+    this.initAudio();
+    this.t0 = performance.now();
+    this.skipped = false;
+    this.bootDone = false;
+    this.el.boot.style.display = 'flex';
+    this.el.boot.style.opacity = '1';
+    this.el.boot.textContent = '';
+    this.el.card.style.opacity = '0';
+    this.slamStarted = false; this.slamDone = false;
+    this.logoZ = 900; this.logoV = 0;
+    this.el.logowrap.style.opacity = '0';
+    this.kick = 0; this.impactP = 0; this.impactAge = 9; this.shockT = -1;
+    this.forced = [2.2, 3.1, 7.2];
+    this.whooshes = [4.0, 6.3, 8.4];
+    this.nextBurst = 4.2; this.nextSheen = Infinity; this.sheenT = -1;
+    this.nextSpark = 6.6;
+    this.revealDone = false; this.gridDone = false;
+    this.el.space.style.opacity = '0';
+    this.el.grid.style.opacity = '0';
+    this.reveal.forEach((r) => { r.cleared = false; });
+    this.spokenCard = null; this.stopSpeech();
+    this.promptOn = false; this.promptState = 0; this.promptCycleT = 0;
+    this.el.ctaswap.style.opacity = '0'; this.el.txtCTA.style.opacity = '0';
+    this.drops[0].at = 9.15; this.drops[1].at = 9.45; this.drops[2].at = 9.75;
+    this.drops.forEach((d) => { d.hit1 = d.hit2 = false; });
+    this.textsAt = { 'aw-txtShare': 10.7, 'aw-txtNoRef': 10.9, 'aw-txtFuture': 11.1 };
+    this.promptAt = 11.4;
+    this.beginning = false; this.beginT = -1;
+    this.el.flashB.style.opacity = '0';
+    this.cam = { wx: this.KF[0].wx, wy: this.KF[0].wy, wz: this.KF[0].wz, rx: this.KF[0].rx, ry: this.KF[0].ry };
+  }
+
+  begin() {
+    if (this._begun) return;                        /* idempotent: no double chord/flash */
+    this._begun = true;
+    this.beginning = true; this.beginT = 0;
+    this.stopSpeech();                              /* narrator yields to the launch sting */
+    try { if (window.AW_MUSIC) window.AW_MUSIC.stop(1.2); } catch (e) {}
+    this.beginChord();
+    try { window.dispatchEvent(new CustomEvent('aiwars:splashbegin')); } catch (e) {}
+  }
+
+  camTarget(t) {
+    const KF = this.KF;
+    if (!this.skipped && t < KF[KF.length - 1].t) {
+      let a = KF[0], b = KF[1];
+      for (let i = 0; i < KF.length - 1; i++) { if (t >= KF[i].t) { a = KF[i]; b = KF[i + 1]; } }
+      let q = Math.min(1, Math.max(0, (t - a.t) / (b.t - a.t)));
+      q = q < 0.5 ? 4 * q * q * q : 1 - Math.pow(-2 * q + 2, 3) / 2;
+      const L = (k) => a[k] + (b[k] - a[k]) * q;
+      return { wx: L('wx'), wy: L('wy'), wz: L('wz'), rx: L('rx'), ry: L('ry') };
+    }
+    const par = (this.props.parallax ?? 1) * (this.reduced ? 0 : 1);
+    const TAU = Math.PI * 2;
+    return {
+      wx: this.mouse.x * -12 * par + 6 * Math.sin(t * TAU * 0.026 + 4),
+      wy: this.mouse.y * -9 * par + 5 * Math.sin(t * TAU * 0.033 + 1),
+      wz: 16 * Math.sin(t * TAU * 0.02),
+      rx: -this.mouse.y * 1.7 * par + 0.9 * Math.sin(t * TAU * 0.06 + 2),
+      ry: this.mouse.x * 2.4 * par + 1.6 * Math.sin(t * TAU * 0.045)
+    };
+  }
+
+  // fall-from-top with comic double bounce; before start: parked above frame, invisible
+  dropCalc(dr, t) {
+    const u = t - dr.at;
+    if (u < 0) return { dy: -dr.H, sqx: 1, sqy: 1, vis: 0 };
+    const d1 = 0.42, b1 = 0.36, b2 = 0.2;
+    let dy = 0;
+    if (u < d1) { const q = u / d1; dy = -dr.H * (1 - q * q); }
+    else {
+      if (!dr.hit1) { dr.hit1 = true; this.shake = Math.max(this.shake, 3.2); this.thud(0.55); }
+      if (u < d1 + b1) { const v = (u - d1) / b1; dy = -dr.H * 0.14 * 4 * v * (1 - v); }
+      else {
+        if (!dr.hit2) { dr.hit2 = true; this.thud(0.22); }
+        if (u < d1 + b1 + b2) { const v = (u - d1 - b1) / b2; dy = -dr.H * 0.035 * 4 * v * (1 - v); }
+      }
+    }
+    const sq = (ti, mag) => { const w = u - ti; return w >= 0 ? mag * Math.exp(-w * 13) : 0; };
+    const s = sq(d1, 0.15) + sq(d1 + b1, 0.06);
+    return { dy, sqx: 1 + s * 0.9, sqy: 1 - s, vis: 1 };
+  }
+
+  // ================== MAIN LOOP ==================
+  tick(now) {
+    this.raf = requestAnimationFrame(this.tick.bind(this));
+    const t = (now - this.t0) / 1000;
+    const dt = Math.min(0.05, (now - (this.lastNow || now)) / 1000 || 0.016);
+    this.lastNow = now;
+    const P = {
+      drift: this.props.explosionDrift ?? 1,
+      arcAct: this.props.arcActivity ?? 1,
+      hover: this.props.hoverEnergy ?? 1
+    };
+    const RM = this.reduced ? 0.35 : 1;
+    const TAU = Math.PI * 2;
+    const settleRaw = Math.min(1, t / this.SETTLE);
+    const settle = 1 - Math.pow(1 - settleRaw, 3);
+    const p = settle * P.drift;
+    const T = this.T.bind(this);
+
+    // ---- dark opening: shared reveal state ----
+    let flashF = 0;
+    if (!this.revealDone) {
+      for (const fa of this.thunder) {
+        const fu = t - fa;
+        if (fu >= 0 && fu < 0.6) flashF = Math.max(flashF, Math.exp(-fu * 6.5) * (0.55 + 0.45 * Math.sin(fu * 90)));
+      }
+      if (t > this.ARC_ON + 0.45) {
+        this.revealDone = true;
+        this.reveal.forEach((r) => { if (!r.cleared) { r.el.style.filter = ''; r.cleared = true; } });
+      }
+    }
+    const vis01 = (a, d) => this.revealDone ? 1 : Math.min(1, Math.max(0, (t - a) / d));
+    const arcVis = vis01(this.ARC_ON, 0.3);
+    const shipVis = vis01(5.95, 0.5);
+
+    // ---- camera chase ----
+    const tgt = this.camTarget(t);
+    const ch = 1 - Math.pow(0.004, dt);
+    for (const k of ['wx', 'wy', 'wz', 'rx', 'ry']) this.cam[k] += (tgt[k] - this.cam[k]) * ch;
+    this.el.world.style.transform =
+      'translate3d(' + this.cam.wx + 'px,' + this.cam.wy + 'px,' + this.cam.wz + 'px) rotateX(' + this.cam.rx + 'deg) rotateY(' + this.cam.ry + 'deg)';
+
+    // ---- whoosh cues ----
+    if (this.whooshes.length && t >= this.whooshes[0]) { this.whooshes.shift(); this.whoosh(); }
+
+    // ---- stage: shake + breath + impact punch ----
+    if (this.shake > 0.001) { this.shake *= Math.pow(0.0001, dt); this.shakeT += dt; } else this.shake = 0;
+    const shx = this.shake * Math.sin(this.shakeT * 130) * RM;
+    const shy = this.shake * Math.cos(this.shakeT * 111) * 0.7 * RM;
+    this.impactP *= Math.pow(0.012, dt);
+    const breath = 1 + 0.006 * Math.sin(t * TAU / 12);
+    let punch = 0;
+    if (this.beginning) {
+      this.beginT += dt;
+      const b = this.beginT;
+      punch = b < 0.45 ? (b / 0.45) * (b / 0.45) * 0.06 : 0.06;
+      this.el.flashW.style.opacity = b < 0.14 ? String(0.85 * (1 - b / 0.14)) : '0';
+      this.el.flashB.style.opacity = b > 0.35 ? String(Math.min(1, (b - 0.35) / 0.5)) : '0';
+      if (b > 1.5 && b < 2.6) this.el.flashB.style.opacity = String(Math.max(0, 1 - (b - 1.5) / 0.8));
+      if (b >= 2.6) { this.beginning = false; this.el.flashB.style.opacity = '0'; }
+    }
+    this.el.stage.style.transform =
+      'translate(-50%, -50%) scale(' + (this.baseScale * breath * (1 + punch + this.impactP)) + ') translate(' + shx + 'px,' + shy + 'px)';
+    this.el.stage.style.filter = this.impactP > 0.002 ? 'saturate(' + (1 + this.impactP * 14) + ') brightness(' + (1 + this.impactP * 5) + ')' : 'none';
+
+    // ---- boot overlay ----
+    if (!this.bootDone) {
+      const chars = Math.max(0, Math.floor((t - 0.12) * 95));
+      let out = '', used = 0, done = true;
+      for (let i = 0; i < this.BOOT.length; i++) {
+        const line = this.BOOT[i];
+        if (chars > used + line.length) { out += line + '\n'; used += line.length; }
+        else { const sh = Math.max(0, chars - used); out += line.slice(0, sh); done = false; if (sh > 0 && sh < line.length && Math.random() < 0.25) this.blip(); break; }
+      }
+      this.el.boot.textContent = out + (t % 0.5 < 0.3 ? '\u2588' : '');
+      if (t > 1.55) {
+        this.el.boot.style.opacity = String(Math.max(0, 1 - (t - 1.55) / 0.3));
+        if (t > 1.9) { this.el.boot.style.display = 'none'; this.bootDone = true; }
+      }
+    }
+
+    // ---- story cards ----
+    if (!this.skipped && t < 9.0) {
+      let active = null;
+      for (const c of this.CARDS) if (t >= c.t0 && t < c.t1) active = c;
+      if (active) {
+        if (this.spokenCard !== active && !this.muted) { this.spokenCard = active; this.say(active.say || active.txt); }
+        const sh = Math.floor((t - active.t0) * 34);
+        if (sh <= active.txt.length && Math.random() < 0.2) this.blip();
+        this.el.card.textContent = active.txt.slice(0, sh);
+        this.el.card.style.opacity = '1';
+        this.el.card.style.color = active.big ? '#ff9a3d' : '#cfe7ff';
+        this.el.card.style.transform = 'translateX(-50%) scale(' + (active.big ? 1.3 : 1) + ')';
+      } else this.el.card.style.opacity = '0';
+    }
+
+    // ---- floaters ----
+    this.kick *= Math.pow(0.05, dt);
+    for (const it of this.items) {
+      const c = it.c;
+      const drift = c.amp * p * (0.7 + 0.6 * it.distK) + this.kick * 46 * it.distK;
+      const wob = c.wob * P.hover * RM;
+      const x = it.dx * drift + (Math.sin(t * TAU * c.wf + it.ph) + 0.55 * Math.sin(t * TAU * c.wf * 1.73 + it.ph * 2.6)) * wob;
+      const y = it.dy * drift + (Math.cos(t * TAU * c.wf * 0.9 + it.ph * 1.7) + 0.6 * Math.cos(t * TAU * c.wf * 1.41 + it.ph * 3.1)) * wob * 1.35;
+      let rot = 0;
+      if (c.spin) rot = it.sgn * c.spin * t * 6 % 360;
+      if (c.tumble) rot += it.sgn * (c.tumble * p + Math.sin(t * TAU * c.wf * 0.8 + it.ph) * c.tumble * 0.6);
+      if (it.el === this.el.attackcar && !this.reduced) rot += 0.7 * Math.sin(t * TAU * 6.5);
+      const s = 1 + c.sk * p + this.kick * 0.05;
+      const dz = it.zb * Math.sin(t * TAU * c.wf * 0.62 + it.ph * 1.3) * P.hover * RM;
+      let yy = y, sxx = s, syy = s;
+      const dr = this.dropMap[it.el.id];
+      if (dr) { const o = this.dropCalc(dr, t); yy += o.dy; sxx *= o.sqx; syy *= o.sqy; it.el.style.opacity = String(o.vis); }
+      const tAt = this.textsAt[it.el.id];
+      if (tAt != null) { const a = Math.min(1, Math.max(0, (t - tAt) / 0.4)); yy += (1 - a) * 26; it.el.style.opacity = String(a); }
+      T(it.rec, x, yy, rot, sxx, syy, dz);
+    }
+
+    // ---- motes ----
+    const moteVis = vis01(4.4, 1.4);
+    for (const mo of this.motes) {
+      const phase = ((t * mo.sp + mo.seed) % 700) / 700;
+      const yOff = 350 - 700 * phase;
+      const xOff = 26 * Math.sin(t * 0.35 + mo.seed);
+      T(mo.rec, xOff, yOff, 0, 1, 1);
+      mo.d.style.opacity = String((0.12 + 0.5 * Math.sin(phase * Math.PI)) * (0.75 + 0.25 * Math.sin(t * 2.1 + mo.seed)) * moteVis);
+    }
+
+    // ---- starfield twinkle + space static base ----
+    T(this.rec['aw-space'], 0, 0, 0, 1, 1);
+    T(this.rec['aw-starA'], 0, 0, 0, 1, 1);
+    T(this.rec['aw-starB'], 0, 0, 0, 1, 1);
+    const starVis = Math.max(vis01(1.2, 1.8), flashF * 0.6);
+    this.el.starA.style.opacity = String((0.55 + 0.25 * Math.sin(t * 1.1)) * starVis);
+    this.el.starB.style.opacity = String((0.6 + 0.3 * Math.sin(t * 0.8 + 2)) * starVis);
+    if (!this.revealDone) this.el.space.style.opacity = String(Math.min(1, vis01(1.5, 2.6) + flashF * 0.4));
+
+    // ---- grid breath + forming wave (luminance mask ∩ expanding radial) ----
+    const gs = 1 + 0.014 * Math.sin(t * TAU / 9);
+    T(this.rec['aw-gridwrap'], 0, 0, 0, gs, gs);
+    if (!this.gridDone) {
+      const RV = this.RV;
+      const s1 = this.el.gridlines.style, s2 = this.el.gridglow.style;
+      if (t < RV.w0) {
+        s1.opacity = '0'; s2.opacity = '0';
+        this.el.grid.style.opacity = '0';
+      } else {
+        const q0 = Math.min(1, (t - RV.w0) / (RV.w1 - RV.w0));
+        const q = Math.pow(q0, 2.2);   /* ease-in: linger small near the vanishing point, then rush out */
+        const R = 8 + q * 1430;
+        const soft = 90 + 200 * q;
+        const gu = "url('layers/BG_Grid.png')";
+        const lm = gu + ', radial-gradient(circle at ' + RV.cx + 'px ' + RV.cy + 'px, #fff ' + Math.max(0, R - soft).toFixed(0) + 'px, rgba(255,255,255,0) ' + R.toFixed(0) + 'px)';
+        const gm = gu + ', radial-gradient(circle at ' + RV.cx + 'px ' + RV.cy + 'px, rgba(255,255,255,0) ' + Math.max(0, R - 150).toFixed(0) + 'px, #fff ' + Math.max(0, R - 45).toFixed(0) + 'px, #fff ' + R.toFixed(0) + 'px, rgba(255,255,255,0) ' + (R + 70).toFixed(0) + 'px)';
+        s1.maskImage = lm; s1.webkitMaskImage = lm;
+        s2.maskImage = gm; s2.webkitMaskImage = gm;
+        s1.filter = 'brightness(' + (1.35 + 0.85 * (1 - q)).toFixed(2) + ') saturate(1.2)';
+        const linesOut = 1 - Math.min(1, Math.max(0, (t - RV.base1) / (RV.lines1 - RV.base1)));
+        s1.opacity = String(Math.min(1, (t - RV.w0) / 0.35) * (0.78 + 0.1 * Math.sin(t * 43)) * linesOut);
+        const ringOut = 1 - Math.min(1, Math.max(0, (t - RV.w1) / 0.7));
+        s2.opacity = String(Math.min(1, (t - RV.w0) / 0.3) * ringOut * (0.8 + 0.2 * Math.sin(t * 31)));
+        const baseA = Math.min(1, Math.max(0, (t - RV.base0) / (RV.base1 - RV.base0)));
+        this.el.grid.style.opacity = String(baseA * baseA * (0.94 + 0.06 * Math.sin(t * 37)));
+        if (t > RV.lines1) {
+          this.gridDone = true;
+          this.el.grid.style.opacity = '1';
+          s1.opacity = '0'; s2.opacity = '0';
+          s1.maskImage = 'none'; s1.webkitMaskImage = 'none';
+          s2.maskImage = 'none'; s2.webkitMaskImage = 'none';
+        }
+      }
+    }
+
+    // ---- lightning arc ----
+    if (t >= this.nextArcEv) {
+      const r = Math.random();
+      const m = this.arcMode;
+      if (r < 0.62) { m.rot = (Math.random() - 0.5) * 10; m.s = 0.88 + Math.random() * 0.28; m.bright = 1.5 + Math.random() * 0.9; }
+      else if (r < 0.9) { m.fx = Math.random() < 0.5 ? -1 : 1; m.fy = Math.random() < 0.72 ? 1 : -1; m.rot = (Math.random() - 0.5) * 14; m.s = 0.85 + Math.random() * 0.35; }
+      else { m.s = 0.6; m.bright = 0.9; }
+      this.nextArcEv = t + (0.03 + Math.random() * 0.1) / P.arcAct;
+    }
+    let burst = 0;
+    let fire = false;
+    if (this.forced.length && t >= this.forced[0]) { this.forced.shift(); fire = true; }
+    if (t >= this.nextBurst && this.burstHold <= 0) {
+      if (!this.revealDone && t < this.ARC_ON) { this.nextBurst = this.ARC_ON + 0.35; }
+      else { fire = true; this.nextBurst = t + (1.6 + Math.random() * 2.6) / P.arcAct; }
+    }
+    if (fire && this.burstHold <= 0) { this.burstHold = 0.22; this.shake = Math.max(this.shake, 2.2); this.zap(1); }
+    if (this.burstHold > 0) { this.burstHold -= dt; burst = Math.max(0, this.burstHold / 0.22); }
+    const m = this.arcMode;
+    const flick = 0.72 + Math.random() * 0.28;
+    const bs = m.s * (1 + burst * 0.65);
+    T(this.rec['aw-arc'], 0, 0, m.rot, m.fx * bs, m.fy * bs);
+    this.el.arc.style.opacity = String(Math.min(1, flick + burst * 0.5) * arcVis);
+    this.el.arc.style.filter = 'brightness(' + (m.bright + burst * 1.1) + ') saturate(0.55) hue-rotate(170deg)';
+    T(this.rec['aw-arcglow'], 0, 0, m.rot, m.fx * bs, m.fy * bs);
+    this.el.arcglow.style.opacity = String((0.35 + burst * 0.65) * arcVis);
+    T(this.rec['aw-arcbg'], 0, 0, 0, 1, 1);
+    this.el.arcbg.style.opacity = String((0.22 + 0.1 * Math.sin(t * TAU * 0.5) + burst * 0.55) * arcVis + (1 - arcVis) * 0.16 * flashF);
+
+    // ---- brains ----
+    this.burstGlow = Math.max(burst, this.burstGlow * Math.pow(0.02, dt));
+    const g = this.burstGlow;
+    if (burst > 0.9) { this.lunge = 1; this.recoil = 1; }
+    this.lunge *= Math.pow(0.05, dt); this.recoil *= Math.pow(0.08, dt);
+    const oy = Math.sin(t * TAU * 0.34) * 7 * P.hover;
+    const orot = Math.sin(t * TAU * 0.34 + 0.8) * 1.6;
+    T(this.rec['aw-brainO'], this.lunge * 10, oy, orot + this.lunge * 1.2, 1, 1);
+    this.el.brainO.style.filter = g > 0.02 ? 'brightness(' + (1 + g * 0.28) + ')' : 'none';
+    const jx = this.reduced ? 0 : (Math.random() - 0.5) * 2.4;
+    const jy = this.reduced ? 0 : (Math.random() - 0.5) * 2;
+    const by = Math.sin(t * TAU * 0.9 + 2) * 4.5 * P.hover;
+    T(this.rec['aw-brainB'], this.recoil * -12 + jx, by + jy, Math.sin(t * TAU * 0.9) * 1 - this.recoil * 2, 1, 1);
+    this.el.brainB.style.filter = g > 0.02 ? 'brightness(' + (1 + g * 0.35) + ')' : 'none';
+
+    // ---- claw hinge ----
+    if (burst > 0.9) this.clawV -= 90;
+    this.clawTarget = -5 + Math.sin(t * TAU * 0.21) * 8;
+    const kk = 26, damp = 5.2;
+    this.clawV += (this.clawTarget - this.clawA) * kk * dt - this.clawV * damp * dt;
+    this.clawA += this.clawV * dt;
+    T(this.rec['aw-claw'], this.recoil * -9, by * 0.85, this.clawA, 1, 1);
+
+    // ---- ship ----
+    const sy = Math.sin(t * TAU * 0.23) * 17 * P.hover;
+    const sx = Math.sin(t * TAU * 0.061) * 28 * P.hover;
+    const srot = Math.sin(t * TAU * 0.23 + 0.6) * 2.6;
+    T(this.rec['aw-shipwrap'], sx, sy, srot, 1, 1);
+    if (!this.reduced) this.el.ship.style.filter = 'brightness(' + (1 + Math.random() * 0.1) + ')';
+    this.el.shipglow.style.opacity = String((0.34 + 0.2 * Math.sin(t * TAU * 0.5) + Math.random() * 0.08) * shipVis);
+    if (t >= this.nextSpark) {
+      const which = Math.random() < 0.5 ? 0 : 1;
+      this.sparkT[which] = 0.11;
+      this.nextSpark = t + 0.9 + Math.random() * 1.9;
+      if (Math.random() < 0.35) this.zap(0.5);
+    }
+    [this.el.spark0, this.el.spark1].forEach((sp, si) => {
+      if (this.sparkT[si] > 0) {
+        this.sparkT[si] -= dt;
+        sp.style.opacity = String(Math.random() * 0.6 + 0.4);
+        sp.style.transform = 'rotate(' + (Math.random() * 40 - 20) + 'deg) scale(' + (Math.random() < 0.5 ? -1 : 1) + ',1)';
+      } else sp.style.opacity = '0';
+    });
+
+    // ---- attack core ----
+    const beamPulse = 1 + 0.015 * Math.sin(t * TAU * 2.7) + (this.reduced ? 0 : Math.random() * 0.02);
+    let coreGlitchX = 0, coreFilter = 'brightness(' + (1 + (this.reduced ? 0 : Math.random() * 0.07)) + ')';
+    if (t >= this.nextGlitch) { this.glitchT = 0.13; this.nextGlitch = t + 2.2 + Math.random() * 2.8; }
+    if (this.glitchT > 0) {
+      this.glitchT -= dt;
+      coreGlitchX = (Math.random() - 0.5) * 6;
+      coreFilter = 'brightness(1.15) hue-rotate(' + (Math.random() * 40 - 20) + 'deg)';
+    }
+    const cy = Math.sin(t * TAU * 0.19 + 1.2) * 6 * P.hover;
+    const acD = this.dropCalc(this.dropMap['aw-attackcore'], t);
+    this.el.attackcore.style.opacity = String(acD.vis);
+    T(this.rec['aw-attackcore'], coreGlitchX, cy + acD.dy, 0, beamPulse * acD.sqx, beamPulse * acD.sqy);
+    this.el.attackcore.style.filter = coreFilter;
+
+    // ---- worker smash ----
+    this.smashPh = (this.smashPh + dt) % 1.9;
+    const sp2 = this.smashPh;
+    let wrot = 0;
+    if (sp2 < 0.14) wrot = -2.2 * (sp2 / 0.14);
+    else if (sp2 < 0.24) { wrot = -2.2 + 7.2 * ((sp2 - 0.14) / 0.1); }
+    else if (sp2 < 0.6) { wrot = 5 * (1 - (sp2 - 0.24) / 0.36); }
+    const wy = Math.sin(t * TAU * 0.31 + 4) * 5 * P.hover;
+    const wD = this.dropCalc(this.dropMap['aw-worker'], t);
+    this.el.worker.style.opacity = String(wD.vis);
+    T(this.rec['aw-worker'], 0, wy + wD.dy, wrot, wD.sqx, wD.sqy);
+
+    // ---- defense core error flicker (motion handled by items loop) ----
+    if (t >= this.nextErrFlick) { this.errT = 0.16; this.nextErrFlick = t + 2.6 + Math.random() * 3; }
+    if (this.errT > 0) { this.errT -= dt; this.el.defensecore.style.filter = 'brightness(' + (1.1 + Math.random() * 0.25) + ')'; }
+    else this.el.defensecore.style.filter = 'none';
+
+    // ---- LOGO: slam from camera, then float + sheen ----
+    if (!this.slamStarted && t >= this.SLAM_T && !this.skipped) { this.slamStarted = true; }
+    if (this.slamStarted) {
+      const lrec = this.rec['aw-logowrap'];
+      if (!this.slamDone) {
+        this.el.logowrap.style.opacity = '1';
+        this.logoV += (230 - this.logoZ) * 60 * dt - this.logoV * 7.8 * dt;
+        this.logoZ += this.logoV * dt;
+        if (this.logoZ < 262 && this.logoV < 0) {
+          this.slamDone = true;
+          this.impactP = 0.032; this.impactAge = 0;
+          this.shake = Math.max(this.shake, 7);
+          this.kick = 1;
+          this.shockT = 0;
+          this.el.flashW.style.opacity = '0.55';
+          this.thud(); this.zap(1.4);
+          this.nextSheen = t + 0.6;
+        }
+      }
+      this.impactAge += dt;
+      if (this.slamDone && this.el.flashW.style.opacity !== '0' && !this.beginning) {
+        this.el.flashW.style.opacity = String(Math.max(0, parseFloat(this.el.flashW.style.opacity) - dt * 5));
+      }
+      const q = this.impactAge < 1 ? 0.09 * Math.exp(-6 * this.impactAge) * Math.sin(18 * this.impactAge) : 0;
+      const wob = this.slamDone ? 0 : Math.sin(t * 31) * 1.6;
+      const ly = this.slamDone ? Math.sin(t * TAU * 0.08) * 3.5 : 0;
+      const zNow = this.slamDone ? 230 + (this.logoZ - 230) * 0.3 : this.logoZ;
+      this.el.logowrap.style.transform =
+        'translate3d(' + lrec.bx + 'px,' + (lrec.by + ly) + 'px,' + zNow + 'px) rotate(' + wob + 'deg) scale(' + (lrec.comp * (1 + q)) + ',' + (lrec.comp * (1 - q)) + ')';
+    }
+    if (this.shockT >= 0) {
+      this.shockT += dt;
+      const sq = this.shockT / 0.55;
+      if (sq >= 1) { this.shockT = -1; this.el.shock.style.opacity = '0'; }
+      else {
+        this.el.shock.style.opacity = String(0.9 * (1 - sq));
+        this.el.shock.style.transform = 'scale(' + (0.3 + sq * 2.3) + ')';
+      }
+    }
+
+    // ---- sheen ----
+    if (t >= this.nextSheen && this.sheenT < 0) { this.sheenT = 0; this.bling(); }
+    if (this.sheenT >= 0) {
+      this.sheenT += dt;
+      const q = this.sheenT / 1.5;
+      if (q >= 1) { this.sheenT = -1; this.nextSheen = t + 3.6 + Math.random() * 1.4; this.el.sheen.style.backgroundPosition = '160% 0%'; }
+      else {
+        const e = q < 0.5 ? 2 * q * q : 1 - Math.pow(-2 * q + 2, 2) / 2;
+        this.el.sheen.style.backgroundPosition = (160 - 320 * e) + '% 0%';
+      }
+    }
+    // glow rides the sweep with a sine envelope: swells in, peaks mid-sweep,
+    // dies out — never snaps (same fix as the 2D splash)
+    if (this.sheenT >= 0) {
+      const gq = Math.min(1, this.sheenT / 1.5);
+      const glowA = Math.sin(gq * Math.PI);
+      this.el.logo.style.filter = 'drop-shadow(0 0 ' + (6 + 10 * glowA).toFixed(1) + 'px rgba(140,220,255,' + (0.55 * glowA).toFixed(3) + '))';
+    } else this.el.logo.style.filter = 'none';
+
+    // ---- static-base texts ----
+    const shA = Math.min(1, Math.max(0, (t - this.textsAt['aw-txtShare']) / 0.4));
+    T(this.rec['aw-txtShare'], 0, (1 - shA) * 24, 0, 1, 1);
+    T(this.rec['aw-txtCTA'], 0, 0, 0, 1, 1);
+    T(this.rec['aw-ctaswap'], 0, 0, 0, 1, 1);
+    this.el.txtShare.style.opacity = String(shA * (0.9 + 0.1 * Math.sin(t * TAU * 0.2)));
+    if (!this.promptOn) this.el.txtCTA.style.opacity = '0';
+
+    // ---- prompt cycle ----
+    if (!this.promptOn && t > this.promptAt) { this.promptOn = true; this.promptCycleT = 0; this.promptState = 1; }
+    if (this.promptOn) {
+      this.promptCycleT += dt;
+      const fadeIn = Math.min(1, this.promptCycleT / 0.6);
+      if (this.promptState === 1) {
+        this.el.ctaswap.style.opacity = String(fadeIn);
+        this.el.txtCTA.style.opacity = String(1 - fadeIn);
+        if (this.promptCycleT > 6.5) { this.promptState = 2; this.promptCycleT = 0; }
+      } else {
+        this.el.ctaswap.style.opacity = String(1 - fadeIn);
+        this.el.txtCTA.style.opacity = String(fadeIn);
+        if (this.promptCycleT > 3) { this.promptState = 1; this.promptCycleT = 0; }
+      }
+    }
+
+    // ---- dark opening: silhouettes flicker alive piece by piece ----
+    if (!this.revealDone) {
+      for (const it of this.reveal) {
+        const u = t - it.at;
+        if (u < 0) {
+          it.el.style.filter = 'brightness(' + (0.03 + 0.24 * flashF).toFixed(3) + ')';
+        } else if (u < it.dur) {
+          const fq = u / it.dur;
+          const on = Math.sin(u * 57 + it.ph * 9) > (1 - 2.2 * fq);
+          const b = on ? (1 + 0.45 * (1 - fq)) : (0.05 + 0.3 * fq);
+          it.el.style.filter = 'brightness(' + b.toFixed(3) + ')';
+          it.cleared = false;
+        } else if (!it.cleared) { it.el.style.filter = ''; it.cleared = true; }
+      }
+    }
+
+    // ---- corner buttons: skip/replay retired in game-integration (parent iframe
+    //      owns skip/begin); the old _skipShown flip re-showed them here — gone.
+    //      #aw-sndbtn stays the only visible control, top-right.
+  }
+
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

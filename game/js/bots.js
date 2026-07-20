@@ -126,7 +126,10 @@
       else if (u.building && u.building.produces === 'triangle') triCount++;
     }
 
-    // ---- workers: stay adjacent-ish to own core, ALWAYS building when idle
+    // ---- workers: stay adjacent-ish to own core, build only up to the army
+    // cap (live + in-progress combat units). Rebuild-to-strength, not hoard:
+    // losses drop the census below the cap and production resumes.
+    const MAX_COMBAT = 6;   // 2 vehicles + 4 triangles at the 2:1 mix
     for (const w of mine){
       if (w.type !== 'worker') continue;
       if (w.building) continue;                 // mid-build: immobile, busy
@@ -137,7 +140,7 @@
           myCore[1] + (sign(w.pos[1] - myCore[1]) || 1)
         ], grid);
         ordersArr.push({ unit: w.id, target: home });
-      } else {
+      } else if (vehCount + triCount < MAX_COMBAT){
         // Build mix: first vehicle ASAP, then keep ~2:1 triangles:vehicles.
         let produces;
         if (vehCount === 0) produces = 'vehicle';
@@ -146,6 +149,7 @@
         builds.push({ worker: w.id, produces: produces });
         if (produces === 'vehicle') vehCount++; else triCount++;
       }
+      // at cap: worker idles by the core until losses reopen a build slot
     }
 
     // ---- combat units: rally near own core until group >= 3, then push

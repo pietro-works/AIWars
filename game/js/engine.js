@@ -180,11 +180,36 @@
 
   // ── halfTurn internals ───────────────────────────────────────────────────
 
+  // Landing resolution: tiles are exclusive at REST only, never in transit.
+  // If `target` is free (or is the mover's own tile) take it; otherwise scan
+  // rings r=1.. outward around the target and pick the free in-grid tile
+  // closest (Chebyshev) to `from` — "nearest free tile next to the target from
+  // the mover's point of view". Ties break by ring walk order (clockwise from
+  // north), so the result is fully deterministic.
+  function freeLanding(s, from, target, ignoreId){
+    if (!occupiedAt(s, target[0], target[1], ignoreId)) return [target[0], target[1]];
+    const maxR = Math.max(CONST.GRID.W, CONST.GRID.H);
+    for (let r = 1; r <= maxR; r++){
+      let best = null, bestD = Infinity;
+      for (const off of ringOffsets(r)){
+        const x = target[0] + off[0], y = target[1] + off[1];
+        if (!inGrid(x, y) || occupiedAt(s, x, y, ignoreId)) continue;
+        const d = cheb(from, [x, y]);
+        if (d < bestD){ best = [x, y]; bestD = d; }
+      }
+      if (best) return best;
+    }
+    return [from[0], from[1]];             // 336-tile board fully packed: stay put
+  }
+
   // 1. Movement. Chebyshev clamp along the ordered line, implemented as greedy
-  // stepping: each step moves dx=sign(tx-x), dy=sign(ty-y) (a straight-ish line
-  // toward the target; every step reduces Chebyshev distance by exactly 1), for
-  // min(move_range, chebyshev(from, target)) steps. Within range this lands
-  // exactly on the target; beyond range it clamps at exactly move_range steps.
+  // stepping: each step moves dx=sign(tx-x), dy=sign(ty-y), for
+  // min(move_range, chebyshev(from, dest)) steps. Units pass THROUGH occupied
+  // tiles freely; only the landing tile is exclusive. An occupied destination
+  // redirects via freeLanding BEFORE stepping (so travel aims at the real
+  // landing spot); a move clamped short onto an occupied tile re-resolves the
+  // landing the same way. Orders are processed in array order against LIVE
+  // positions, so earlier movers claim landing tiles first.
   // Mid-build workers ignore movement orders entirely.
   function applyMovement(s, side, orders, log){
     for (const o of orders){
@@ -196,34 +221,22 @@
         Math.min(CONST.GRID.W - 1, Math.max(0, o.target[0])),
         Math.min(CONST.GRID.H - 1, Math.max(0, o.target[1])),
       ];
-      const dist = cheb(u.pos, target);
-      const move = statFor(s, u).move;
-      const steps = Math.min(move, dist);
       const from = [u.pos[0], u.pos[1]];
-      let x = u.pos[0], y = u.pos[1];
-      // Tiles are exclusive: a step into an occupied tile is refused. Diagonal
-      // steps may sidestep along one axis (x-first, then y — deterministic);
-      // a fully blocked step ends the move there. Orders are processed in
-      // array order against LIVE positions, so earlier movers claim tiles first.
+      const move = statFor(s, u).move;
+      const dest = freeLanding(s, from, target, u.id);
+      const steps = Math.min(move, cheb(from, dest));
+      let x = from[0], y = from[1];
       for (let i = 0; i < steps; i++){
-        const sx = Math.sign(target[0] - x), sy = Math.sign(target[1] - y);
+        const sx = Math.sign(dest[0] - x), sy = Math.sign(dest[1] - y);
         if (!sx && !sy) break;
-        let nx = x + sx, ny = y + sy;
-        if (occupiedAt(s, nx, ny, u.id)){
-          let alt = null;
-          if (sx && sy){
-            if (!occupiedAt(s, x + sx, y, u.id)) alt = [x + sx, y];
-            else if (!occupiedAt(s, x, y + sy, u.id)) alt = [x, y + sy];
-          }
-          if (!alt) break;                 // boxed in: stop here (clamped)
-          nx = alt[0]; ny = alt[1];
-        }
-        x = nx; y = ny;
-        u.pos = [x, y];                    // claim live so later movers see it
+        x += sx; y += sy;
       }
-      u.pos = [x, y];
-      log.ordersApplied.push({ unit: u.id, from, to: [x, y],
-        clamped: x !== target[0] || y !== target[1] });
+      // clamped short of dest: the interim tile may itself be occupied
+      let land = [x, y];
+      if (occupiedAt(s, x, y, u.id)) land = freeLanding(s, from, [x, y], u.id);
+      u.pos = [land[0], land[1]];
+      log.ordersApplied.push({ unit: u.id, from, to: [land[0], land[1]],
+        clamped: land[0] !== target[0] || land[1] !== target[1] });
     }
   }
 

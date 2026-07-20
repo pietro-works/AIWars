@@ -78,23 +78,26 @@
         signal: controller.signal
       });
     } catch (err) {
+      clearTimeout(timer);
       if (err && err.name === 'LLMFailure') throw err;
       const timedOut = controller.signal.aborted || (err && err.name === 'AbortError');
       return { retryable: true, reason: timedOut ? 'timeout after ' + timeoutMs + 'ms' : 'network error: ' + String((err && err.message) || err) };
-    } finally {
-      clearTimeout(timer);
     }
 
+    // Timer stays armed through the body read: a stalled body must still abort.
     if (res.ok) {
       let data;
-      try { data = await res.json(); } catch (e) { return { retryable: true, reason: 'unreadable response body' }; }
+      try { data = await res.json(); }
+      catch (e) { return { retryable: true, reason: controller.signal.aborted ? 'timeout reading response body' : 'unreadable response body' }; }
+      finally { clearTimeout(timer); }
       const raw = data && data.choices && data.choices[0] && data.choices[0].message
         ? String(data.choices[0].message.content || '') : '';
       return { ok: true, raw: raw };
     }
 
     const status = res.status;
-    const apiMsg = await readApiError(res);
+    let apiMsg;
+    try { apiMsg = await readApiError(res); } finally { clearTimeout(timer); }
     const reason = 'HTTP ' + status + (apiMsg ? ': ' + apiMsg : '');
     if (status === 429 || status >= 500) return { retryable: true, reason: reason };
     return { fatal: true, kind: 'auth', reason: reason };

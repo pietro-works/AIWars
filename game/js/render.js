@@ -15,11 +15,13 @@ const NS = g.AIWARS = g.AIWARS || {};
 const NX = 24, NY = 14;
 const IMG_ASPECT = 2560/1440;
 /* normalized rect of Board Canvas.png occupied by the 24x14 checker.
-   Re-measured 2026-07-04 via least-squares edge fit (the old thresholded scan
-   had swallowed ~15-20px of the frame's inner border on every side).
-   2026-07-04 polish: +2 art px right and down (visual registration: unit feet
-   vs cell centers read better; edge fit alone had it sub-pixel on the art). */
-const CK = { x0:0.1986, y0:0.1692, x1:0.8068, y1:0.8143 };
+   Owner nudge 2026-07-20: whole grid +2 art px right, +1 art px down
+   (2/2560, 1/1440) as a pure translation off the 2026-07-04 tuned rect —
+   period unchanged, just shifted to sit on the painted checker. */
+const CK = { x0:0.1994, y0:0.1699, x1:0.8076, y1:0.8150 };
+/* owner-eyeballed registration nudge on top of CK, in CSS px (scaled by the
+   same capped dpr as the backing store, index.html ResizeObserver) */
+const NUDGE = { x:2, y:1 };
 const SIDE_RGB = { a:'0,241,240', b:'247,3,149' };
 const LIME_RGB = '139,255,46';
 const AMBER = '255,208,2';
@@ -261,7 +263,7 @@ function rebuildEngagements(){
 }
 function renderState(state){
   /* hard reset: drop pending animation, draw this snapshot */
-  queue = []; job = null; parts = []; orderStates = null;
+  queue = []; job = null; parts = []; orderStates = null; bubbles = [];
   applyState(state);
   flushIdle();
 }
@@ -686,7 +688,8 @@ function geom(){
   const W = board.width, H = board.height;
   /* cover the board cutout by height; width over-fills and bleeds off the sides */
   const imgH = H, imgW = H*IMG_ASPECT, imgX = (W-imgW)/2, imgY = 0;
-  const gx0 = imgX + CK.x0*imgW, gy0 = imgY + CK.y0*imgH;
+  const dpr = Math.min(2, g.devicePixelRatio||1);
+  const gx0 = imgX + CK.x0*imgW + NUDGE.x*dpr, gy0 = imgY + CK.y0*imgH + NUDGE.y*dpr;
   const gw = (CK.x1-CK.x0)*imgW, gh = (CK.y1-CK.y0)*imgH;
   const txw = gw/NX, tyh = gh/NY;
   return { W,H,imgX,imgY,imgW,imgH,gx0,gy0,gw,gh,txw,tyh,tile:tyh,
