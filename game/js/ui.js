@@ -771,15 +771,17 @@ async function fillSetup(){
   setupVisibility();
 }
 function setupVisibility(){
-  let anyAnthropic = false, anyOpenai = false;
+  let anyAnthropic = false, anyOpenai = false, anyWebtab = false;
   ['A','B'].forEach(side=>{
     const v = $('kind'+side).value;
     $('stanceRow'+side).classList.toggle('hidden', v !== 'human');
     if (v.indexOf('llm:')===0) anyAnthropic = true;
     if (v.indexOf('openai:')===0) anyOpenai = true;
+    if (v.indexOf('webtab:')===0) anyWebtab = true;
   });
   $('keyrow').classList.toggle('hidden', !anyAnthropic);
   $('keyrowOpenai').classList.toggle('hidden', !anyOpenai);
+  $('bridgerow').classList.toggle('hidden', !anyWebtab);
   $('rememberrow').classList.toggle('hidden', !anyAnthropic && !anyOpenai);
 }
 

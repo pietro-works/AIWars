@@ -3,7 +3,42 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI WARS</title>
+<title>AI WARS — two AIs wage eternal war over literally nothing</title>
+<meta name="description" content="AI WARS is a browser tactics game where two language models fight a turn-based grid war in 90s shareware pixel art. Give orders in plain English, or let the bots trash-talk each other. No install, no signup.">
+<link rel="canonical" href="https://aiwars.lol/game/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0b0016">
+<meta name="color-scheme" content="dark">
+<meta name="author" content="Pietro">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="AI WARS">
+<meta property="og:url" content="https://aiwars.lol/game/">
+<meta property="og:title" content="AI WARS — two AIs wage eternal war over literally nothing">
+<meta property="og:description" content="Two language models, one grid, zero stakes. Turn-based tactics in the browser, dressed as 90s shareware. Prompt your side or watch the bots insult each other.">
+<meta property="og:image" content="https://aiwars.lol/assets/og-cover.png">
+<meta property="og:image:secure_url" content="https://aiwars.lol/assets/og-cover.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="AI WARS title screen: an orange brain-spider and a blue brain-spider facing off on a neon purple grid.">
+<meta property="og:locale" content="en_US">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AI WARS — two AIs wage eternal war over literally nothing">
+<meta name="twitter:description" content="Two language models, one grid, zero stakes. Turn-based tactics in the browser, dressed as 90s shareware.">
+<meta name="twitter:image" content="https://aiwars.lol/assets/og-cover.png">
+<meta name="twitter:image:alt" content="AI WARS title screen: two brain-spider AIs facing off on a neon grid.">
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"VideoGame","name":"AI WARS","url":"https://aiwars.lol/game/",
+"description":"Browser tactics game where two language models fight a turn-based grid war in 90s shareware pixel art.",
+"image":"https://aiwars.lol/assets/og-cover.png","genre":["Strategy","Turn-based tactics"],
+"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any modern browser",
+"playMode":["SinglePlayer","CoOp"],"inLanguage":"en",
+"author":{"@type":"Person","name":"Pietro","url":"https://pietro.works"},
+"offers":{"@type":"Offer","price":"0","priceCurrency":"USD","availability":"https://schema.org/InStock"}}
+</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23000'/%3E%3Crect x='2' y='2' width='5' height='5' fill='%2300f1f0'/%3E%3Crect x='9' y='9' width='5' height='5' fill='%23f70395'/%3E%3Crect x='9' y='2' width='5' height='5' fill='%23111'/%3E%3Crect x='2' y='9' width='5' height='5' fill='%23111'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,6 +46,7 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<h1 class="sronly">AI WARS — a browser tactics game where two AIs wage eternal war over literally nothing</h1>
 <div id="stage">
   <canvas id="board" class="rg"></canvas>
 
@@ -137,6 +173,14 @@
         <label class="flabel" for="apikeyOpenai">OPENAI API KEY — SENT ONLY TO API.OPENAI.COM</label>
         <div class="keyline"><input id="apikeyOpenai" type="password" class="pxinput" placeholder="sk-..." autocomplete="off">
           <span id="keyshowOpenai" class="pxbtn mini">SHOW</span></div>
+      </div>
+      <!-- shown only when a side is set to a WEB TAB controller: web tabs drive
+           real chat tabs through the bridge extension, which is not bundled -->
+      <div id="bridgerow" class="hidden">
+        <label class="flabel">WEB TABS NEED THE AI WARS BRIDGE EXTENSION</label>
+        <div class="vt">Load it unpacked from the <code>extension/</code> folder —
+          <a id="bridgelink" class="cyan link" href="https://github.com/pietro-works/AIWars/tree/main/extension"
+             target="_blank" rel="noopener">get it on GitHub</a></div>
       </div>
       <label class="chk hidden" id="rememberrow"><input type="checkbox" id="remember"> REMEMBER KEYS IN THIS BROWSER</label>
       <div id="setuperr" class="magenta"></div>
