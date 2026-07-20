@@ -15,10 +15,11 @@ const NS = g.AIWARS = g.AIWARS || {};
 const NX = 24, NY = 14;
 const IMG_ASPECT = 2560/1440;
 /* normalized rect of Board Canvas.png occupied by the 24x14 checker.
-   Owner nudge 2026-07-20: whole grid +2 art px right, +1 art px down
-   (2/2560, 1/1440) as a pure translation off the 2026-07-04 tuned rect —
-   period unchanged, just shifted to sit on the painted checker. */
-const CK = { x0:0.1994, y0:0.1699, x1:0.8076, y1:0.8150 };
+   Owner nudge 2026-07-20: whole grid +1 art px right, +1 art px down
+   (1/2560, 1/1440) as a pure translation off the 2026-07-04 tuned rect —
+   period unchanged, just shifted to sit on the painted checker.
+   (was +2 right; owner returned 1 px left.) */
+const CK = { x0:0.1990, y0:0.1699, x1:0.8072, y1:0.8150 };
 /* owner-eyeballed registration nudge on top of CK, in CSS px (scaled by the
    same capped dpr as the backing store, index.html ResizeObserver) */
 const NUDGE = { x:2, y:1 };
