@@ -81,10 +81,11 @@ test('createMatch: initial state shape, 2 workers per side adjacent to core', ()
     const d = Math.max(Math.abs(u.pos[0]-s.cores[u.side].pos[0]), Math.abs(u.pos[1]-s.cores[u.side].pos[1]));
     assertEq(d, 1, u.id + ' adjacent to own core');
   }
-  // deterministic spawn, tiles exclusive: w1 takes ring-1 offset [0,-1], w2
-  // finds [0,-1] occupied and slides clockwise to [1,-1].
-  assertEq(byId(s, 'A_w1').pos, [1, 0]);
-  assertEq(byId(s, 'A_w2').pos, [2, 0]);
+  // deterministic spawn around the 2x2 core block. A's north tile [1,0] is a
+  // core tile, so ring-1 clockwise-from-north lands w1 on [2,0], then w2 on
+  // [2,1]. B's block extends down-right, leaving its north tiles free.
+  assertEq(byId(s, 'A_w1').pos, [2, 0]);
+  assertEq(byId(s, 'A_w2').pos, [2, 1]);
   assertEq(byId(s, 'B_w1').pos, [22, 11]);
   assertEq(byId(s, 'B_w2').pos, [23, 11]);
 });
@@ -331,12 +332,13 @@ test('core passive worker: each side spawns exactly once on turn 4, again on 8',
     if (s.turn > 9) break;
   }
   const spawns = logs.flatMap(l => l.coreSpawns.map(cs => ({ turn: l.turn, side: cs.side, pos: cs.pos })));
-  // starters occupy the first two ring-1 tiles; spawns keep walking clockwise
+  // starters + the 4 core tiles are blocked, so spawns walk the ring clockwise
+  // to the first free tile around each 2x2 block.
   assertEq(spawns, [
-    { turn: 4, side: 'B', pos: [23,12] },  // t4 even: B acts first
-    { turn: 4, side: 'A', pos: [2,1] },
-    { turn: 8, side: 'B', pos: [23,13] },
-    { turn: 8, side: 'A', pos: [2,2] },
+    { turn: 4, side: 'B', pos: [21,13] },  // t4 even: B acts first
+    { turn: 4, side: 'A', pos: [2,2] },
+    { turn: 8, side: 'B', pos: [21,12] },
+    { turn: 8, side: 'A', pos: [1,2] },
   ]);
   assertEq(s.coreSpawnedTurn, { A: 8, B: 8 });
   // 2 starters + t4 + t8 per side

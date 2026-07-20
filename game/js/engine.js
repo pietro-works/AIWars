@@ -30,6 +30,17 @@
     MODELS: ["claude-opus-4-8","claude-sonnet-5","claude-haiku-4-5-20251001","claude-fable-5"],
   };
 
+  // Cores occupy a 2x2 block anchored at CORE_POS and extending toward the
+  // nearest corner (A -> top-left, B -> bottom-right). These four tiles are
+  // permanently blocked: nothing spawns on them and nothing can land on them.
+  // CORE_POS stays the anchor tile (combat/FX still aim at it).
+  function coreBlock(p){
+    const dx = p[0] < CONST.GRID.W / 2 ? -1 : 1;
+    const dy = p[1] < CONST.GRID.H / 2 ? -1 : 1;
+    return [[p[0], p[1]], [p[0]+dx, p[1]], [p[0], p[1]+dy], [p[0]+dx, p[1]+dy]];
+  }
+  CONST.CORE_TILES = { A: coreBlock(CONST.CORE_POS.A), B: coreBlock(CONST.CORE_POS.B) };
+
   const STANCES = ['default', 'attack', 'defense'];
   const TYPES = ['worker', 'vehicle', 'triangle'];
   const TYPE_LETTER = { worker: 'w', vehicle: 'v', triangle: 't' };
@@ -76,11 +87,24 @@
     return side + '_' + TYPE_LETTER[type] + state.counters[side][type];
   }
 
-  // Tile exclusivity: cores and living units block a tile. ignoreId exempts the
-  // moving/building unit itself.
+  // A core tile is any of the 4 tiles the side's 2x2 core covers.
+  function coreOccupies(side, x, y){
+    const tiles = CONST.CORE_TILES[side];
+    for (let i = 0; i < tiles.length; i++) if (tiles[i][0] === x && tiles[i][1] === y) return true;
+    return false;
+  }
+  // Chebyshev distance from a position to the NEAREST tile of a side's core block.
+  function minChebToCore(pos, side){
+    const tiles = CONST.CORE_TILES[side];
+    let m = Infinity;
+    for (let i = 0; i < tiles.length; i++){ const d = cheb(pos, tiles[i]); if (d < m) m = d; }
+    return m;
+  }
+
+  // Tile exclusivity: cores (all 4 tiles of each 2x2 block) and living units
+  // block a tile. ignoreId exempts the moving/building unit itself.
   function occupiedAt(state, x, y, ignoreId){
-    if ((state.cores.A.pos[0] === x && state.cores.A.pos[1] === y) ||
-        (state.cores.B.pos[0] === x && state.cores.B.pos[1] === y)) return true;
+    if (coreOccupies('A', x, y) || coreOccupies('B', x, y)) return true;
     for (const u of state.units){
       if (ignoreId && u.id === ignoreId) continue;
       if (u.pos[0] === x && u.pos[1] === y) return true;
@@ -315,7 +339,7 @@
       if (st.atk <= 0) continue;              // workers never attack
       const enemySide = other(u.side);
       const inRangeUnits = s.units.filter(e => e.side === enemySide && cheb(u.pos, e.pos) <= st.range);
-      const coreInRange = cheb(u.pos, s.cores[enemySide].pos) <= st.range;
+      const coreInRange = minChebToCore(u.pos, enemySide) <= st.range;
       const pol = (s.firePolicies[u.side] || {})[u.type];
       const mode = (pol && pol.mode === 'focus') ? 'focus' : 'spread';
 
@@ -357,7 +381,7 @@
     for (const cs of ['A','B']){
       const enemySide = other(cs);
       for (const e of s.units){
-        if (e.side !== enemySide || cheb(s.cores[cs].pos, e.pos) > CONST.CORE.range) continue;
+        if (e.side !== enemySide || minChebToCore(e.pos, cs) > CONST.CORE.range) continue;
         unitDmg[e.id] = (unitDmg[e.id] || 0) + CONST.CORE.attack;
         log.combatEvents.push({ attacker: cs + '_core', target: e.id, dmg: CONST.CORE.attack });
       }

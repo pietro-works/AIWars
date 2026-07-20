@@ -351,11 +351,17 @@ function startJob(log){
   (log.coreSpawns||[]).forEach(s=>{
     if (s && s.unitId) spawns.push({ id:s.unitId, side:s.side, type:'worker', pos:s.pos });
   });
+  /* units minted THIS half-turn aren't in the scene yet (they enter at the
+     marked phase below); include their ids so a unit that spawns AND dies (or
+     gets hit) in the same log still flashes + sink-fades in the death phase
+     instead of popping in and teleport-vanishing at reconcile. The death phase
+     itself guards on scene.units.get(id), so by then the spawn is present. */
+  const spawnIds = new Set(spawns.map(s=>s.id));
   const combat = (log.combatEvents||[]).map(ev=>Object.assign({}, ev, {
     coreFrom: (!scene.units.has(ev.attacker) && coreSideOf(ev.attacker)) || null,
   }));
   const coreHits = (log.coreDamage||[]).slice();
-  const deaths = (log.deaths||[]).filter(id=>scene.units.get(id));
+  const deaths = (log.deaths||[]).filter(id=>scene.units.get(id) || spawnIds.has(id));
 
   const T = {};
   T.move   = moves.length ? moveEnd : 0;
@@ -365,7 +371,7 @@ function startJob(log){
   T.total  = Math.max(T.death, DUR_MIN);
 
   const targets = new Set();
-  combat.forEach(ev=>{ if (scene.units.has(ev.target)) targets.add(ev.target); });
+  combat.forEach(ev=>{ if (scene.units.has(ev.target) || spawnIds.has(ev.target)) targets.add(ev.target); });
   const coreFire = { A:false, B:false };
   combat.forEach(ev=>{ if (ev.coreFrom) coreFire[ev.coreFrom] = true; });
   const coreHit = { A:false, B:false };
@@ -854,7 +860,11 @@ function drawUnit(g_, u, t){
   const stance = (scene.stances && scene.stances[sideUp] && scene.stances[sideUp][u.type]) || 'default';
   const m = META.sprites[u.type+'_'+stance] || META.sprites[u.type+'_default'];
   if (!m) return;
-  const mult = u.type==='vehicle' ? 1.55 : u.type==='triangle' ? 1.35 : 1.2;
+  let mult = u.type==='vehicle' ? 1.55 : u.type==='triangle' ? 1.35 : 1.2;
+  mult *= 1.15;   /* global sprite upsize */
+  /* attack-stance workers & triangles read as the aggressive variant — an extra
+     1.15x on top of the global bump (vehicles keep the plain global size) */
+  if (stance === 'attack' && (u.type === 'worker' || u.type === 'triangle')) mult *= 1.15;
   const sc = (g_.tyh*mult)/Math.max(m.w,m.h);
   let w = m.w*sc, h = m.h*sc;
   let alpha = (u.alpha==null ? 1 : u.alpha);
@@ -922,23 +932,35 @@ function drawUnit(g_, u, t){
     ctx.restore();
   }
 }
+function coreBounds(side){
+  const tiles = (NS.CONST && NS.CONST.CORE_TILES && NS.CONST.CORE_TILES[side]);
+  if (!tiles || !tiles.length){ const p = corePos(side); return { minX:p[0], minY:p[1], maxX:p[0], maxY:p[1] }; }
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  for (const tl of tiles){ if(tl[0]<minX)minX=tl[0]; if(tl[0]>maxX)maxX=tl[0]; if(tl[1]<minY)minY=tl[1]; if(tl[1]>maxY)maxY=tl[1]; }
+  return { minX, minY, maxX, maxY };
+}
 function drawCore(g_, side, t){
   if (!CORE) return;
   const sideL = side.toLowerCase();
-  const pos = corePos(side);
   const cw = combatWin();
   const firing = cw!==null && job.coreFire[side];
   const img = IMGS[firing ? (sideL==='a'?'conA':'conB') : (sideL==='a'?'coffA':'coffB')];
   if (!img) return;
-  const sc = (g_.tyh*2.4)/CORE.bodyW, cx = g_.px(pos[0])+g_.txw/2, cy = g_.py(pos[1])+g_.tyh;
+  /* the core now occupies a 2x2 block: center the sprite on the block, feet on
+     its bottom row, and size the FX to the block footprint. */
+  const b = coreBounds(side);
+  const bw = b.maxX-b.minX+1, bh = b.maxY-b.minY+1;
+  const sc = (g_.tyh*2.4*bh)/CORE.bodyW;
+  const cx = g_.px(b.minX + bw/2), cy = g_.py(b.maxY+1);
+  const ccx = g_.px(b.minX + bw/2), ccy = g_.py(b.minY + bh/2);   /* block center for rings */
   /* idle heartbeat glow so cores never read as dead scenery */
   if (scene.cores[side].hp > 0){
     const col = SIDE_RGB[sideL];
     const beat = 0.05 + 0.035*Math.sin(t/560 + (side==='B'?2.1:0));
     ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.globalAlpha = beat;
-    const gr = ctx.createRadialGradient(cx,cy-g_.tyh*.8,0,cx,cy-g_.tyh*.8,g_.tyh*2.2);
+    const gr = ctx.createRadialGradient(ccx,ccy,0,ccx,ccy,g_.tyh*2.8);
     gr.addColorStop(0,'rgba('+col+',1)'); gr.addColorStop(1,'rgba('+col+',0)');
-    ctx.fillStyle=gr; ctx.beginPath(); ctx.arc(cx,cy-g_.tyh*.8,g_.tyh*2.2,0,7); ctx.fill();
+    ctx.fillStyle=gr; ctx.beginPath(); ctx.arc(ccx,ccy,g_.tyh*2.8,0,7); ctx.fill();
     ctx.restore();
   }
   ctx.save(); ctx.translate(cx,cy); if (sideL==='b') ctx.scale(-1,1);
@@ -946,17 +968,17 @@ function drawCore(g_, side, t){
   ctx.restore();
   const col = SIDE_RGB[sideL];
   if (firing){
-    /* zap ring — mockup drawCore "on" code, range from CONST */
+    /* zap ring — sized to the block + Chebyshev range from CONST */
     const RG = coreRange(), ph = cw;
     ctx.save(); ctx.globalCompositeOperation = 'lighter';
     ctx.beginPath(); ctx.rect(g_.gx0,g_.gy0,g_.gw,g_.gh); ctx.clip();
     ctx.fillStyle = 'rgba('+col+','+(0.10+0.05*Math.sin(t/70)).toFixed(3)+')';
-    ctx.fillRect(g_.px(pos[0]-RG), g_.py(pos[1]-RG), g_.txw*(RG*2+1), g_.tyh*(RG*2+1));
+    ctx.fillRect(g_.px(b.minX-RG), g_.py(b.minY-RG), g_.txw*(bw+RG*2), g_.tyh*(bh+RG*2));
     for (let k=0;k<3;k++){
-      const p = (ph*2.2 + k/3)%1, rx = (0.5+RG*p)*g_.txw, ry = (0.5+RG*p)*g_.tyh;
+      const p = (ph*2.2 + k/3)%1, rx = (bw/2+RG*p)*g_.txw, ry = (bh/2+RG*p)*g_.tyh;
       ctx.strokeStyle = 'rgba('+col+','+(0.75*(1-p)).toFixed(3)+')';
       ctx.lineWidth = Math.max(1.5, g_.tyh*0.08*(1-p));
-      ctx.strokeRect(g_.px(pos[0])+g_.txw/2-rx, g_.py(pos[1])+g_.tyh/2-ry, rx*2, ry*2);
+      ctx.strokeRect(ccx-rx, ccy-ry, rx*2, ry*2);
     }
     ctx.restore();
   }
