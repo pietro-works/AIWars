@@ -17,11 +17,15 @@ Options -Indexes
   # key, it has nowhere to send it. 'unsafe-inline' is required because the game
   # and the splash both carry large inline <script> blocks; removing it is a
   # separate refactor, not a header change.
-  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self' data:; connect-src 'self' https://api.anthropic.com https://api.openai.com http://localhost:11434 http://127.0.0.1:11434; frame-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; object-src 'none'"
+  # frame-ancestors must be 'self', NOT 'none': the game loads its own splash
+  # (assets/splash/*.dc.html) in a same-origin iframe, and 'none' blocks that
+  # too — the intro dies with "refused to connect". 'self' still stops any
+  # other site from framing the game.
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self' data:; connect-src 'self' https://api.anthropic.com https://api.openai.com http://localhost:11434 http://127.0.0.1:11434; frame-src 'self'; frame-ancestors 'self'; base-uri 'none'; form-action 'none'; object-src 'none'"
 
-  # frame-ancestors covers modern browsers; this covers the rest. Stops framing
-  # the real game and floating a fake "paste your API key" overlay on top.
-  Header always set X-Frame-Options "DENY"
+  # Same reason DENY is wrong here: it blocks same-origin framing as well.
+  # SAMEORIGIN keeps the clickjacking protection for third-party sites.
+  Header always set X-Frame-Options "SAMEORIGIN"
 
   Header always set X-Content-Type-Options "nosniff"
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
