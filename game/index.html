@@ -168,6 +168,15 @@
           </div>
         </div>
       </div>
+      <!-- shown whenever an API-key controller is selected: browser-side keys are
+           visible to anything running on this page, so say so before they paste -->
+      <div id="keynote" class="hidden">
+        <label class="flabel">BEFORE YOU PASTE A KEY</label>
+        <div class="vt">There is no server here. Your key goes straight from this tab to the
+          provider and nowhere else, but it lives in the page while you play, so use a
+          <b class="amber">spend-capped or project-scoped key</b> you can revoke, never your main one.
+          Keys are only stored if you tick REMEMBER, and FORGET KEYS erases them.</div>
+      </div>
       <div id="keyrow" class="hidden">
         <label class="flabel" for="apikey">ANTHROPIC API KEY — SENT ONLY TO API.ANTHROPIC.COM</label>
         <div class="keyline"><input id="apikey" type="password" class="pxinput" placeholder="sk-ant-..." autocomplete="off">
@@ -187,6 +196,13 @@
              target="_blank" rel="noopener">get it on GitHub</a></div>
       </div>
       <label class="chk hidden" id="rememberrow"><input type="checkbox" id="remember"> REMEMBER KEYS IN THIS BROWSER</label>
+      <!-- always reachable while a key is on disk, regardless of which controllers
+           are selected — otherwise the only way to erase a stored key is to start
+           an API match with the box unticked -->
+      <div id="forgetrow" class="hidden">
+        <span class="amber">A KEY IS STORED IN THIS BROWSER</span>
+        <span id="forgetkeys" class="pxbtn mini">FORGET KEYS</span>
+      </div>
       <div id="setuperr" class="magenta"></div>
       <div class="btnrow"><span id="startbtn" class="pxbtn big">START MATCH</span></div>
       <div class="replayrow vt">or <span id="replaylink" class="cyan link">load a replay file</span>

@@ -3,7 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js"></script>
+<!-- The Claude Design runtime (support.js, ~60KB) used to boot this file: it
+     pulled React + ReactDOM from unpkg at runtime and ran the logic block below
+     through new Function. None of that is needed to play an animation — the
+     block only ever used this.props and componentDidMount. It is now a plain
+     script with a 3-line base class, so the splash ships with zero third-party
+     JS and no remote code execution path into the game's origin. -->
 </head>
 <body>
 <x-dc>
@@ -462,7 +467,14 @@ html, body { margin: 0; padding: 0; background: #030109; overflow: hidden; }
   g.AW_MUSIC = { start: start, stop: stop, setMuted: setMuted };
 })(typeof window !== 'undefined' ? window : globalThis);
 </script>
-<script type="text/x-dc" data-dc-script data-props="{&quot;explosionDrift&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:2,&quot;min&quot;:0,&quot;max&quot;:2,&quot;step&quot;:0.05,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;,&quot;description&quot;:&quot;How far everything floats outward from the blast center&quot;},&quot;arcActivity&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:3,&quot;min&quot;:0.25,&quot;max&quot;:3,&quot;step&quot;:0.05,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;,&quot;description&quot;:&quot;Lightning twitch + burst frequency&quot;},&quot;hoverEnergy&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:2,&quot;min&quot;:0,&quot;max&quot;:2,&quot;step&quot;:0.05,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;,&quot;description&quot;:&quot;Bob/hover amplitude for ship, brains and floaters&quot;},&quot;parallax&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:2,&quot;min&quot;:0,&quot;max&quot;:2,&quot;step&quot;:0.05,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;,&quot;description&quot;:&quot;Mouse + idle 3D camera parallax after the intro&quot;}}">
+<script>
+/* Minimal stand-in for the design-runtime base class. The logic block below
+   only ever reads this.props and relies on componentDidMount being called
+   once after the DOM exists; nothing else of DCLogic was ever used. */
+class DCLogic {
+  constructor(props){ this.props = props || {}; }
+}
+
 class Component extends DCLogic {
   componentDidMount() {
     const $ = (id) => document.getElementById(id);
@@ -1399,6 +1411,10 @@ class Component extends DCLogic {
 
   renderVals() { return {}; }
 }
+
+/* Prop defaults come straight from the data-props block the design tool used
+   to emit; these are the same values the runtime passed in. */
+new Component({ explosionDrift: 2, arcActivity: 3, hoverEnergy: 2, parallax: 2 }).componentDidMount();
 </script>
 </body>
 </html>

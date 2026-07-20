@@ -179,10 +179,11 @@ canvas{ image-rendering:pixelated; }
 select.pxinput, select.pxinput option{ background:#04070c; color:var(--lime); }
 .stancerow{ display:flex; flex-direction:column; gap:.45em; }
 .stset{ display:flex; gap:.35em; }
-#keyrow, #keyrowOpenai, #bridgerow{ display:flex; flex-direction:column; gap:.45em; }
-#bridgerow .vt{ font-size:1.05em; color:#7f95a8; }
+#keyrow, #keyrowOpenai, #bridgerow, #keynote{ display:flex; flex-direction:column; gap:.45em; }
+#bridgerow .vt, #keynote .vt{ font-size:1.05em; color:#7f95a8; line-height:1.35; }
 #bridgerow code{ color:var(--amber); font-family:inherit; }
 #bridgerow a{ color:var(--cyan); }
+#forgetrow{ display:flex; align-items:center; gap:.6em; font-size:1.05em; }
 .keyline{ display:flex; gap:.5em; align-items:center; }
 .chk{ font-family:"VT323",monospace; font-size:1em; color:#7f95a8; display:flex; align-items:center; gap:.4em; }
 .pxbtn{ display:inline-block; border:2px solid var(--lime-btn); color:var(--lime); background:rgba(4,16,2,.85);

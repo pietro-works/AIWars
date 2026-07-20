@@ -524,17 +524,19 @@ async function startMatchInner(){
   keys.openai = ($('apikeyOpenai').value || '').trim();
   if (has('llm') && !keys.anthropic){ err.textContent = 'AN ANTHROPIC API KEY IS REQUIRED FOR CLAUDE API SIDES'; return; }
   if (has('openai') && !keys.openai){ err.textContent = 'AN OPENAI API KEY IS REQUIRED FOR OPENAI SIDES'; return; }
-  if (has('llm') || has('openai')){
-    try{
-      if ($('remember').checked){
-        if (keys.anthropic) localStorage.setItem(KEY_LS, keys.anthropic);
-        if (keys.openai) localStorage.setItem(KEY_LS_OPENAI, keys.openai);
-      } else {
-        localStorage.removeItem(KEY_LS);
-        localStorage.removeItem(KEY_LS_OPENAI);
-      }
-    }catch(e){}
-  }
+  /* Key persistence runs on EVERY start, not just API matches, and each key is
+     handled independently. Both matter: gating this on has('llm')||has('openai')
+     meant unchecking REMEMBER and starting a bot-vs-bot match left the keys on
+     disk with the checkbox hidden, and a truthiness-only setItem meant clearing
+     one field never removed that key. Empty field or unchecked box == erase. */
+  try{
+    const keep = $('remember').checked;
+    if (keep && keys.anthropic) localStorage.setItem(KEY_LS, keys.anthropic);
+    else localStorage.removeItem(KEY_LS);
+    if (keep && keys.openai) localStorage.setItem(KEY_LS_OPENAI, keys.openai);
+    else localStorage.removeItem(KEY_LS_OPENAI);
+  }catch(e){}
+  syncForgetRow();
   if (has('webtab')){
     if (location.protocol === 'file:'){
       err.textContent = 'WEB TABS NEED THE GAME SERVED OVER http://localhost — RUN `python3 -m http.server` IN THE PROJECT FOLDER';
@@ -770,6 +772,21 @@ async function fillSetup(){
   if (preferOllama) NS.Ollama.warm(preferOllama);
   setupVisibility();
 }
+/* FORGET KEYS row: visible whenever either key is on disk, independent of the
+   controller selection, so erasing stored keys never requires starting a match */
+function syncForgetRow(){
+  let stored = false;
+  try{ stored = !!(localStorage.getItem(KEY_LS) || localStorage.getItem(KEY_LS_OPENAI)); }catch(e){}
+  const row = $('forgetrow');
+  if (row) row.classList.toggle('hidden', !stored);
+}
+function forgetKeys(){
+  try{ localStorage.removeItem(KEY_LS); localStorage.removeItem(KEY_LS_OPENAI); }catch(e){}
+  keys.anthropic = ''; keys.openai = '';
+  $('apikey').value = ''; $('apikeyOpenai').value = '';
+  $('remember').checked = false;
+  syncForgetRow();
+}
 function setupVisibility(){
   let anyAnthropic = false, anyOpenai = false, anyWebtab = false;
   ['A','B'].forEach(side=>{
@@ -779,6 +796,7 @@ function setupVisibility(){
     if (v.indexOf('openai:')===0) anyOpenai = true;
     if (v.indexOf('webtab:')===0) anyWebtab = true;
   });
+  $('keynote').classList.toggle('hidden', !anyAnthropic && !anyOpenai);
   $('keyrow').classList.toggle('hidden', !anyAnthropic);
   $('keyrowOpenai').classList.toggle('hidden', !anyOpenai);
   $('bridgerow').classList.toggle('hidden', !anyWebtab);
@@ -924,6 +942,8 @@ async function boot(){
   });
   wireShow('apikey','keyshow');
   wireShow('apikeyOpenai','keyshowOpenai');
+  $('forgetkeys').addEventListener('click', forgetKeys);
+  syncForgetRow();
   $('replaylink').addEventListener('click', ()=>$('replayfile').click());
   $('replayfile').addEventListener('change', ev=>{
     if (ev.target.files && ev.target.files[0]) loadReplayFile(ev.target.files[0]);

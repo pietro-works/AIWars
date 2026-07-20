@@ -1,0 +1,29 @@
+# Shipped to the site root as .htaccess by bin/deploy-aiwars.sh.
+# An API key can live on this origin, so the goal is: nobody else's script runs
+# here, and nothing this page loads can phone the key anywhere but the two
+# provider APIs. Every directive is guarded by IfModule so a module missing on
+# the host degrades to "no header" instead of a 500 on the whole site.
+
+# Source listing was public: /game/js/ served a browsable index.
+Options -Indexes
+
+<IfModule mod_headers.c>
+  # First plaintext hit still happens; after that the browser refuses http for
+  # two years. No includeSubDomains — subdomains are not audited or guaranteed
+  # to hold a valid cert, and that flag would take them down with it.
+  Header always set Strict-Transport-Security "max-age=63072000"
+
+  # The valuable half is connect-src: even if a script got injected and read the
+  # key, it has nowhere to send it. 'unsafe-inline' is required because the game
+  # and the splash both carry large inline <script> blocks; removing it is a
+  # separate refactor, not a header change.
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self' data:; connect-src 'self' https://api.anthropic.com https://api.openai.com http://localhost:11434 http://127.0.0.1:11434; frame-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; object-src 'none'"
+
+  # frame-ancestors covers modern browsers; this covers the rest. Stops framing
+  # the real game and floating a fake "paste your API key" overlay on top.
+  Header always set X-Frame-Options "DENY"
+
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+</IfModule>
