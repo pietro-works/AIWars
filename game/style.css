@@ -182,7 +182,11 @@ select.pxinput, select.pxinput option{ background:#04070c; color:var(--lime); }
 /* The panel is sized by its widest child, so a prose paragraph would stretch it
    out to the 82% cap and leave the two side columns swimming. Cap the setup
    panel in em (scales with the stage) so text wraps instead of widening it. */
-#setup .panel{ max-width:min(82%, 40em); }
+/* 1.5x the whole setup modal. Everything inside is em-based (labels .42em,
+   inputs 1.1em, gaps, sidecol min-width), so bumping the panel's own font-size
+   scales type and box together — and because the cap below is in em, it scales
+   with it instead of clipping the wider content. */
+#setup .panel{ font-size:1.5em; max-width:min(82%, 40em); }
 #keyrow, #keyrowOpenai, #bridgerow, #keynote{ display:flex; flex-direction:column; gap:.45em; }
 #bridgerow .vt, #keynote .vt{ font-size:1.05em; color:#7f95a8; line-height:1.35; }
 #bridgerow code{ color:var(--amber); font-family:inherit; }
