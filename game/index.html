@@ -46,7 +46,11 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<h1 class="sronly">AI WARS — a browser tactics game where two AIs wage eternal war over literally nothing</h1>
+<!-- hiding is inlined, NOT left to style.css: js/css ship with a 30-day
+     cache-control while the html is 10 min, so a returning visitor can pair new
+     markup with a month-old stylesheet. A class-based rule renders this as a
+     full-width headline over the game until their css expires. -->
+<h1 style="position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0">AI WARS — a browser tactics game where two AIs wage eternal war over literally nothing</h1>
 <div id="stage">
   <canvas id="board" class="rg"></canvas>
 

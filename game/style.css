@@ -8,9 +8,6 @@
   --blue:#3d9bff; --grey:#56606e;   /* state ledger: blue = committed order, grey = inert */
 }
 *{ box-sizing:border-box; margin:0; }
-/* SEO/a11y heading: real text in the DOM, invisible on screen (logo art carries it visually) */
-.sronly{ position:absolute; width:1px; height:1px; padding:0; overflow:hidden;
-  clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; border:0; }
 html,body{ height:100%; }
 body{ background:#000 url("../assets/main bg.png") center center / cover no-repeat;
   display:flex; align-items:center; justify-content:center; overflow:hidden;
