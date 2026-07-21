@@ -43,7 +43,16 @@ const VOLLEY = {
   triangle: { period: 3100, antic: 380, action: 320 },
   core:     { period: 3600, antic: 300, action: 420 },
 };
-const PART_CAP = 140;
+/* HI-FI particle pass toggle. Flip to false to strip the extra hi-fi layer back
+   to the pre-pass baseline everywhere it is read (bigger pool, higher spawn
+   counts, per-spark bloom, denser smoke, and the missile's extra embers/spokes/
+   larger light radius). The base vehicle-missile oomph (detonation debris +
+   bloom halo + hot core) is a permanent addition and stays on regardless. */
+const HIFI = true;
+const PART_CAP = HIFI ? 220 : 140;
+/* ===== DATACENTER MELTDOWN warning (turns 30-40) ===== */
+const MELTDOWN_BANNER_MS = 5000;   /* announcement banner life at onset (turn 30) */
+const MELTDOWN_PULSE_MS  = 1400;   /* red-glow + banner throb period */
 
 /* ===== module state ===== */
 let board=null, ctx=null, META=null, CORE=null;
@@ -64,6 +73,8 @@ let bubbles = [];       /* {side:'a'|'b', text, born} */
 let parts = [];         /* particle pool: dust/casing/spark/exhaust/pop */
 let engagements = [];   /* theatrical attack pairs, rebuilt on applyState */
 let fxOps = [];         /* per-frame theatrical draw ops (filled by updateTheatrics) */
+let curTurn = 0;        /* current engine turn, fed by applyState + startJob */
+let meltdownOnset = -1; /* clock ms when the meltdown window was entered; -1 = inactive */
 
 /* ===== helpers ===== */
 function sfx(ev){ try{ if(NS.Audio && NS.Audio.play) NS.Audio.play(ev); }catch(e){} }
@@ -72,6 +83,39 @@ function corePos(side){
   return C && C[side] ? C[side] : (side==='A' ? [1,1] : [22,12]);
 }
 function coreRange(){ return (NS.CONST && NS.CONST.CORE && NS.CONST.CORE.range) || 2; }
+/* ── DATACENTER MELTDOWN: render-only turn gate (turns 30-40) ── */
+function meltdownWindow(){
+  const M = NS.CONST && NS.CONST.MELTDOWN;
+  const lim = (NS.CONST && NS.CONST.TURN_LIMIT) || 40;
+  return { from: (M && M.fromTurn) || 30, to: (M && M.toTurn) || lim };
+}
+function meltdownActive(){ const W = meltdownWindow(); return curTurn >= W.from && curTurn <= W.to; }
+/* rising-edge turn setter: drives the meltdown onset (banner anchor + siren once) */
+function setTurn(n){
+  if (typeof n !== 'number' || n === curTurn) return;
+  const W = meltdownWindow();
+  const wasIn = curTurn >= W.from && curTurn <= W.to;
+  curTurn = n;
+  const nowIn = curTurn >= W.from && curTurn <= W.to;
+  if (nowIn && !wasIn){ meltdownOnset = clock; sfx('meltdown'); }   /* announce once */
+  else if (!nowIn) meltdownOnset = -1;                              /* replay-scrub back out */
+}
+/* 0..1 throb, phase 0 at onset so the first pulse RISES with the banner slam-in */
+function meltdownPulse(){
+  if (meltdownOnset < 0) return 0;
+  const ph = (clock - meltdownOnset) / MELTDOWN_PULSE_MS;
+  return 0.5 - 0.5*Math.cos(ph*Math.PI*2);
+}
+/* banner in/out envelope over its ~5s announcement, 0 outside that life */
+function meltdownBanner(){
+  if (meltdownOnset < 0) return 0;
+  const age = clock - meltdownOnset;
+  if (age < 0 || age > MELTDOWN_BANNER_MS) return 0;
+  const IN = 420, OUT = 750;
+  if (age < IN) return Math.max(0, easeOutBack(age/IN));
+  if (age > MELTDOWN_BANNER_MS - OUT) return (MELTDOWN_BANNER_MS-age)/OUT;
+  return 1;
+}
 function rng(n){ const s=Math.sin(n*12.9898)*43758.5453; return s-Math.floor(s); }
 function hash(id){ let h=0; const s=String(id); for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))|0; return Math.abs(h); }
 function easeInOutCubic(p){ return p<.5 ? 4*p*p*p : 1-Math.pow(-2*p+2,3)/2; }
@@ -120,7 +164,7 @@ function spawnPart(p){
   p.born = clock; parts.push(p);
 }
 function dust(x, y, seed){
-  for (let i=0;i<3;i++){
+  for (let i=0, N=HIFI?4:3; i<N; i++){
     const a = rng(seed+i)*Math.PI*2, sp = 0.15+rng(seed+i+3)*0.25;
     spawnPart({ kind:'dust', x, y, vx:Math.cos(a)*sp, vy:-0.12-rng(seed+i+7)*0.2, grav:0.5,
       life:480+rng(seed+i+11)*260, size:0.06+rng(seed+i+13)*0.05, color:'170,150,130' });
@@ -131,7 +175,8 @@ function casing(x, y, dir, seed){
     grav:2.6, life:620, size:0.05, color:AMBER });
 }
 function sparkBurst(x, y, rgb, n, seed){
-  for (let i=0;i<n;i++){
+  const N = HIFI ? Math.ceil(n*1.6) : n;
+  for (let i=0;i<N;i++){
     const a = rng(seed+i)*Math.PI*2, sp = 0.4+rng(seed+i+5)*0.7;
     spawnPart({ kind:'spark', x, y:y-0.35, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp*0.7-0.2,
       grav:1.4, life:300+rng(seed+i+9)*180, size:0.035, color:rgb });
@@ -163,6 +208,7 @@ function drawParts(g_){
     } else if (p.kind === 'spark'){
       ctx.globalCompositeOperation = 'lighter';
       ctx.fillStyle = 'rgba('+p.color+',1)';
+      if (HIFI){ ctx.shadowColor = 'rgba('+p.color+',1)'; ctx.shadowBlur = Math.max(2, g_.tyh*0.12); }  /* spark bloom */
       const s = Math.max(1, g_.tyh*p.size);
       ctx.fillRect(x-s/2, y-s/2, s, s);
     } else { /* dust / casing */
@@ -227,6 +273,7 @@ function applyState(st){
   if (st.stances){
     try{ scene.stances = JSON.parse(JSON.stringify(st.stances)); }catch(e){}
   }
+  if (typeof st.turn === 'number') setTurn(st.turn);   /* meltdown onset keys off the reconciled turn */
   rebuildEngagements();
 }
 /* who theatrically fights whom while nothing "real" is happening: every unit
@@ -325,6 +372,7 @@ function emote(side, text){
 
 /* ===== half-turn job machine ===== */
 function startJob(log){
+  if (typeof log.turn === 'number') setTurn(log.turn);   /* crisp meltdown onset at enqueue */
   /* choreographed movement: departures staggered (id order = deterministic),
      duration grows with distance so nothing reads as a teleport */
   const rawMoves = [];
@@ -591,7 +639,7 @@ function drawRocket(g_, op){
     const vx = (x1-x0), vy = (y1-y0) - Math.cos(fp*Math.PI)*Math.PI*g_.tyh*0.9;
     const vlen = Math.hypot(vx,vy)||1, ux = vx/vlen, uy = vy/vlen;
     /* smoke puffs shed along the path (particle pool handles fade) */
-    if (rng(op.seed+((clock/50)|0)) > 0.45){
+    if (rng(op.seed+((clock/50)|0)) > (HIFI?0.30:0.45)){   /* HIFI: denser smoke trail */
       spawnPart({ kind:'dust', x:op.from[0]+(op.to[0]-op.from[0])*fp, y:op.from[1]+(op.to[1]-op.from[1])*fp - lift/g_.tyh,
         vx:(rng(op.seed+fp*97)-.5)*0.1, vy:-0.05, grav:0.06, life:420, size:0.055, color:'150,150,160' });
     }
@@ -611,6 +659,32 @@ function drawRocket(g_, op){
         spawnPart({ kind:'dust', x:op.to[0], y:op.to[1]-0.2, vx:(rng(op.seed+bp*31)-.5)*0.4, vy:-0.35,
           grav:-0.05, life:900, size:0.09, color:'120,116,110' });
       }
+    }
+    /* ADD: fatter detonation debris — layers on top of the existing one-shot,
+       same window + rng gate. HIFI scales it (embers ride the toggle). */
+    if (bp < 0.14){
+      if (rng(op.seed*5 + ((clock/30)|0)) > 0.35){
+        const nSpark = HIFI ? 5 : 3;
+        for (let i=0;i<nSpark;i++){
+          const ang = rng(op.seed*11 + i*3.1 + bp*50)*Math.PI*2;
+          const sp  = 0.6 + rng(op.seed*9 + i*7.7)*1.3;
+          spawnPart({ kind:'spark', x:op.to[0], y:op.to[1], vx:Math.cos(ang)*sp, vy:Math.sin(ang)*sp*0.7-0.5,
+            grav:2.4, life:420+rng(op.seed+i)*260, size:0.05, color: i%3 ? '255,196,70':'255,238,150' });
+        }
+        for (let i=0;i<2;i++){                        /* rising smoke chunks */
+          spawnPart({ kind:'dust', x:op.to[0]+(rng(op.seed+i*4)-.5)*0.5, y:op.to[1]-0.15,
+            vx:(rng(op.seed+i*5)-.5)*0.3, vy:-0.28-rng(op.seed+i)*0.12, grav:-0.04,
+            life:1000, size:0.11, color:'96,92,88' });
+        }
+      }
+      if (HIFI){                                       /* fast embers that outrun the fireball */
+        for (let i=0;i<3;i++){
+          const ang = rng(op.seed*17+i)*Math.PI*2, sp = 1.4+rng(op.seed*19+i)*1.2;
+          spawnPart({ kind:'spark', x:op.to[0], y:op.to[1], vx:Math.cos(ang)*sp, vy:Math.sin(ang)*sp*0.6-0.7,
+            grav:1.8, life:560, size:0.035, color:'255,150,40' });
+        }
+      }
+      shakeKick(g_.tyh*0.05*op.intensity, 180);        /* extra kick, merged with existing */
     }
     ctx.save(); ctx.globalCompositeOperation = 'lighter';
     /* stage 1: white detonation flash */
@@ -637,6 +711,28 @@ function drawRocket(g_, op){
     for (let i = 0; i < 14; i++){
       const a = i*(Math.PI*2/14) + op.seed%7;
       ctx.fillRect(Math.round(x1+Math.cos(a)*SR-px/2), Math.round(y1+Math.sin(a)*SR*0.82-px/2), px, px);
+    }
+    /* ADD: bloom halo + hot core, additive, on top of flash/fireball/shockwave.
+       HIFI adds a larger radius and volumetric light spokes. */
+    {
+      const LR = g_.tyh*(0.6 + 2.2*bp) * (HIFI?1.15:1);
+      ctx.globalAlpha = op.intensity*(1-bp)*(HIFI?0.5:0.38);
+      const lg = ctx.createRadialGradient(x1,y1,0,x1,y1,LR);
+      lg.addColorStop(0,'rgba(255,226,150,0.9)');
+      lg.addColorStop(0.35,'rgba(255,120,40,0.45)');
+      lg.addColorStop(1,'rgba(120,20,0,0)');
+      ctx.fillStyle=lg; ctx.beginPath(); ctx.arc(x1,y1,LR,0,7); ctx.fill();
+      if (bp < 0.33){                                  /* hot white core pop */
+        ctx.globalAlpha = op.intensity*(1-bp/0.33);
+        ctx.fillStyle='rgba(255,255,255,0.9)';
+        ctx.beginPath(); ctx.arc(x1,y1, g_.tyh*(0.18+0.25*bp), 0, 7); ctx.fill();
+      }
+      if (HIFI){                                       /* light spokes */
+        ctx.globalAlpha = op.intensity*(1-bp)*0.4;
+        ctx.strokeStyle='rgba(255,210,120,0.8)'; ctx.lineWidth=Math.max(1,g_.tyh*0.03);
+        for (let i=0;i<8;i++){ const ang=i*Math.PI/4 + op.seed*0.3;
+          ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x1+Math.cos(ang)*LR*1.1, y1+Math.sin(ang)*LR*1.1); ctx.stroke(); }
+      }
     }
     ctx.restore();
   }
@@ -1072,6 +1168,69 @@ function drawTheatricFx(g_){
     }
   }
 }
+/* board darkens under the units for the whole 30-40 window (subtle, pulsed) */
+function drawMeltdownDim(g_){
+  if (!meltdownActive()) return;
+  const pu = meltdownPulse();
+  ctx.save();
+  ctx.fillStyle = 'rgba(6,2,10,'+(0.24 + 0.06*pu).toFixed(3)+')';
+  ctx.fillRect(g_.imgX, g_.imgY, g_.imgW, g_.imgH);
+  ctx.restore();
+}
+/* diagonal yellow/black industrial danger bars, clipped to the strip end, scroll by dir */
+function drawHazardChevrons(x, y, w, h, t, dir){
+  ctx.save();
+  ctx.beginPath(); ctx.rect(x,y,w,h); ctx.clip();
+  ctx.fillStyle='rgba(16,14,4,0.92)'; ctx.fillRect(x,y,w,h);
+  const bar = Math.max(10, h*0.5), phase = ((t/26)*dir) % (bar*2);
+  ctx.fillStyle='rgba(255,208,2,0.95)';
+  for (let sx = x - h - bar*2 + phase; sx < x + w + h; sx += bar*2){
+    ctx.beginPath();
+    ctx.moveTo(sx,y+h); ctx.lineTo(sx+bar,y+h); ctx.lineTo(sx+bar+h,y); ctx.lineTo(sx+h,y);
+    ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+}
+/* red glow bleeding inward from OUTSIDE the board + center hazard banner */
+function drawMeltdownOverlay(g_, t){
+  if (!meltdownActive()) return;
+  const W = g_.W, H = g_.H, pu = meltdownPulse();
+  /* --- red edge glow, additive, four canvas borders reaching inward --- */
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  const depth = Math.min(W, H) * (0.16 + 0.06*pu);
+  const a = 0.22 + 0.30*pu;
+  const stop = grd=>{ grd.addColorStop(0,'rgba(255,30,26,'+a.toFixed(3)+')');
+                      grd.addColorStop(0.5,'rgba(200,12,10,'+(a*0.4).toFixed(3)+')');
+                      grd.addColorStop(1,'rgba(120,0,0,0)'); };
+  let grd;
+  grd=ctx.createLinearGradient(0,0,0,depth);      stop(grd); ctx.fillStyle=grd; ctx.fillRect(0,0,W,depth);
+  grd=ctx.createLinearGradient(0,H,0,H-depth);    stop(grd); ctx.fillStyle=grd; ctx.fillRect(0,H-depth,W,depth);
+  grd=ctx.createLinearGradient(0,0,depth,0);      stop(grd); ctx.fillStyle=grd; ctx.fillRect(0,0,depth,H);
+  grd=ctx.createLinearGradient(W,0,W-depth,0);    stop(grd); ctx.fillStyle=grd; ctx.fillRect(W-depth,0,depth,H);
+  ctx.restore();
+  /* --- center hazard-strip banner, only during the ~5s announcement --- */
+  const bv = meltdownBanner();
+  if (bv <= 0) return;
+  const cy = H*0.5, bh = Math.max(28, H*0.11), slam = 0.6 + 0.4*bv;
+  ctx.save();
+  ctx.globalAlpha = Math.min(1, bv);
+  ctx.translate(0, cy); ctx.scale(1, slam);
+  ctx.fillStyle = 'rgba(14,8,10,0.90)'; ctx.fillRect(0,-bh/2,W,bh);              /* dark bar */
+  ctx.fillStyle = 'rgba(255,24,20,'+(0.10+0.22*pu).toFixed(3)+')'; ctx.fillRect(0,-bh/2,W,bh); /* red pulse tint */
+  const rail = Math.max(2, bh*0.06);                                            /* amber rails */
+  ctx.fillStyle = 'rgba(255,208,2,0.95)';
+  ctx.fillRect(0,-bh/2,W,rail); ctx.fillRect(0,bh/2-rail,W,rail);
+  const cw = Math.max(60, W*0.14);                                              /* chevron ends */
+  drawHazardChevrons(0,    -bh/2, cw, bh, t, +1);
+  drawHazardChevrons(W-cw, -bh/2, cw, bh, t, -1);
+  ctx.fillStyle = '#fff';                                                       /* the words */
+  ctx.font = 'bold '+(Math.max(16, bh*0.5)|0)+'px "VT323",monospace';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.shadowColor='rgba(255,20,16,'+(0.6+0.4*pu).toFixed(3)+')'; ctx.shadowBlur=12+18*pu;
+  ctx.fillText('DATACENTER MELTDOWN', W/2, 1);
+  ctx.restore();
+}
 function drawBubble(g_, b){
   const ph = (clock-b.born)/BUBBLE_MS;
   if (ph >= 1) return false;
@@ -1144,6 +1303,7 @@ function draw(t){
     shakeMag = 0;
   }
   drawTiles(g_);
+  drawMeltdownDim(g_);          /* dim the board under the units, turns 30-40 */
   drawHighlight(g_, t);
   drawOrderPaths(g_, t);
   updateTheatrics();
@@ -1155,6 +1315,7 @@ function draw(t){
   drawParts(g_);
   bubbles = bubbles.filter(b=>drawBubble(g_, b));
   if (shaking) ctx.restore();
+  drawMeltdownOverlay(g_, t);   /* red edge-bleed + banner, unshaken screen space */
 }
 
 /* ===== HUD canvas helpers (thumbs / avatars / trollcrt) — from mockup ===== */

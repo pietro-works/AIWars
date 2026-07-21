@@ -175,7 +175,7 @@
           const d = cheb(u.pos, f.pos);
           if (d < nd || (d === nd && f.id < nearest.id)){ nearest = f; nd = d; }
         }
-        const reach = (typeof u.move_range === 'number' ? u.move_range : 4) + 3;
+        const reach = (typeof u.move_range === 'number' ? u.move_range : 9) + 3;
         if (nd <= reach){
           target = kiteTile(u.pos, nearest.pos, enemyCore, grid);
         }

@@ -59,7 +59,8 @@
     uiTick: 0.05,
     victory: 2.0,
     defeat: 2.0,
-    matchStart: 1.0
+    matchStart: 1.0,
+    meltdown: 8.0    // one-shot alarm; long cooldown blocks re-trigger during its own 3.2s playback
   };
 
   // Loudness tiers (Into-the-Breach law: frequent = quiet, rare = big).
@@ -382,7 +383,9 @@
       voice({ type: 'sine', freq: 131, freqEnd: 523, dur: 0.45, gain: 0.05, attack: 0.02, lpf: 2600 });
       noise({ dur: 0.45, gain: 0.02, freq: 300, freqEnd: 2000, attack: 0.04 });
       voice({ type: 'triangle', freq: 523, dur: 0.16, gain: 0.04, delay: 0.42, lpf: 3000, pair: true });
-    }
+    },
+    // DATACENTER MELTDOWN — one-shot ~3.2s industrial danger siren (turn 30)
+    meltdown: function(){ meltdownSiren(); }
   };
 
   // ---- Ambient bed: C2+G2 open-fifth drone + lowpassed noise, 3 LFOs ------
@@ -477,6 +480,59 @@
         musicBus.gain.setTargetAtTime(MUSIC_GAIN, t + 0.15, 0.35);
       }
     } catch (e){ /* no-op */ }
+  }
+
+  // ── DATACENTER MELTDOWN siren ─────────────────────────────────────────────
+  // Fires ONCE when the meltdown warning appears at turn 30. ~3.2s industrial
+  // wail: detuned tone (triangle body + square edge) swept up/down by a slow
+  // LFO, a ~5Hz klaxon tremolo, then a downward power-fail tail. Built like the
+  // ambient bed (raw nodes + LFOs, fixed self-termination), NOT via voice(): a
+  // sustained source outside the 3-voice one-shot budget — it can neither starve
+  // that budget nor be chopped by it. All sources hard-stop at a fixed time and
+  // nothing is stored in a module handle, so the whole subgraph is GC'd right
+  // after. Ducks the beds bespoke for the alarm's full length (deeper + longer
+  // than the tier duck), which is why 'meltdown' is deliberately NOT a TIER>=2
+  // event: that keeps play()'s 0.5s auto-duck from fighting this one.
+  function meltdownSiren(){
+    if (!ctx || !sfxBus) return;
+    try {
+      const t = ctx.currentTime, DUR = 3.2, end = t + DUR;
+      if (ambientBus && amb){
+        ambientBus.gain.cancelScheduledValues(t);
+        ambientBus.gain.setTargetAtTime(AMBIENT_GAIN * 0.18, t, 0.08);
+        ambientBus.gain.setTargetAtTime(AMBIENT_GAIN, end - 0.6, 0.4);
+      }
+      if (musicBus && mus){
+        musicBus.gain.cancelScheduledValues(t);
+        musicBus.gain.setTargetAtTime(MUSIC_GAIN * 0.18, t, 0.08);
+        musicBus.gain.setTargetAtTime(MUSIC_GAIN, end - 0.6, 0.4);
+      }
+      const env = ctx.createGain();
+      env.gain.setValueAtTime(0.0001, t);
+      env.gain.exponentialRampToValueAtTime(0.11, t + 0.25);
+      env.gain.setValueAtTime(0.11, end - 0.9);
+      env.gain.exponentialRampToValueAtTime(0.0001, end);
+      const trem = ctx.createGain(); trem.gain.value = 1;
+      const tremLfo = ctx.createOscillator();
+      tremLfo.type = 'sine'; tremLfo.frequency.value = 5.2;
+      const tremDepth = ctx.createGain(); tremDepth.gain.value = 0.35;
+      tremLfo.connect(tremDepth); tremDepth.connect(trem.gain);
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 2200;
+      env.connect(trem); trem.connect(lp); lp.connect(sfxBus);
+      const toneGain = ctx.createGain(); toneGain.gain.value = 1; toneGain.connect(env);
+      const edgeGain = ctx.createGain(); edgeGain.gain.value = 0.4; edgeGain.connect(env);
+      const oscTri = ctx.createOscillator();
+      oscTri.type = 'triangle'; oscTri.frequency.value = 440; oscTri.connect(toneGain);
+      const oscSq = ctx.createOscillator();
+      oscSq.type = 'square'; oscSq.frequency.value = 440; oscSq.detune.value = -3; oscSq.connect(edgeGain);
+      const wail = ctx.createOscillator();
+      wail.type = 'triangle'; wail.frequency.value = 0.62;
+      const wailDepth = ctx.createGain(); wailDepth.gain.value = 700;
+      wail.connect(wailDepth);
+      wailDepth.connect(oscTri.detune); wailDepth.connect(oscSq.detune);
+      for (const n of [oscTri, oscSq, wail, tremLfo]){ n.start(t); n.stop(end + 0.05); }
+    } catch (e){ /* never let audio kill the game loop */ }
   }
 
   // Silence the bed while the tab is hidden (scheduler-drift gotcha).

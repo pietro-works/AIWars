@@ -12,7 +12,7 @@
 
 You paste an API key, pick two models, and press start. From that point you are furniture.
 
-The two models blind-declare a doctrine before either can see the board. Then they alternate for thirty turns, moving clusters of pixels toward the enemy's Core and building more clusters to send after it. Nobody tells a unit to attack. Units attack because of where they end up standing. The model that understood that wins. The model that tried to micromanage a knife fight through a JSON field watches its Triangles get walked into a Vehicle and deleted.
+The two models blind-declare a doctrine before either can see the board. Then they alternate for forty turns, moving clusters of pixels toward the enemy's Core and building more clusters to send after it. Nobody tells a unit to attack. Units attack because of where they end up standing. The model that understood that wins. The model that tried to micromanage a knife fight through a JSON field watches its Triangles get walked into a Vehicle and deleted.
 
 Here is what the first sixty seconds actually looks like:
 
@@ -21,7 +21,7 @@ Here is what the first sixty seconds actually looks like:
 > aligning doctrine matrices ...
 > waking the cores ...
 
-  TURN 14 / 30                              ⏱ 00:42
+  TURN 14 / 40                              ⏱ 00:42
   ┌─ SIDE A · HOT CYAN ─────────┐  ┌─ SIDE B · NEON MAGENTA ─────┐
   │ CORE HP  ███████████░░  155  │  │ CORE HP  █████████████ 180  │
   │ w:3  V:1  t:2   parse: ok    │  │ w:2  V:2  t:1   parse: ok   │
@@ -80,9 +80,9 @@ Four kinds of thing exist on the board. One of them can't move and one of them c
 | Unit | Role | HP | Atk | Move | Range |
 |------|------|---:|----:|-----:|------:|
 | **Core** (CRT tower) | Immobile base. Win condition. Also a turret. | 200 | 5 to all in range | 0 | 2 |
-| **Worker** (boxy robot) | Economy. The only builder. Cannot fight, in any stance. | 20 | 0 | 2 | — |
-| **Vehicle** (slug tank) | Siege. Slow, hits hard, only up close. | 60 | 10 | 3 | 1 |
-| **Triangle** (neon flyer) | Harasser. Fast, fragile, shoots from a distance. | 16 | 4 | 6 | 2 |
+| **Worker** (boxy robot) | Economy. The only builder. Cannot fight, in any stance. | 20 | 0 | 5 | — |
+| **Vehicle** (slug tank) | Siege. Slower than a Triangle, hits hard, only up close. | 60 | 10 | 6 | 1 |
+| **Triangle** (neon flyer) | Harasser. Fast, fragile, shoots from a distance. | 16 | 4 | 9 | 2 |
 
 Stats shown are the `default` stance. Every non-Core unit also holds an `attack` or `defense` doctrine, declared once before the match and applied to the whole type at once:
 
@@ -96,7 +96,7 @@ Stats shown are the `default` stance. Every non-Core unit also holds an `attack`
 <img src="assets/readme/spot-a.png" alt="A smug cyan triangle kites a furious magenta slug-tank across the grid. Caption: RANGE 2 > RANGE 1" width="820">
 </div>
 
-The matchups fall out of the numbers, not out of special cases. A default Triangle moves 6 and shoots at range 2. A default Vehicle moves 3 and only bites at range 1. So a Triangle outruns and outranges a Vehicle in open ground and kites it to death for free, exactly as the stats promise. The counter is not a better unit. It is a map edge. Corner the Triangle, cut its retreat, and the Vehicle eats it in one bite, because Triangle HP does not survive contact with a Vehicle that finally reached melee.
+The matchups fall out of the numbers, not out of special cases. A default Triangle moves 9 and shoots at range 2. A default Vehicle moves 6 and only bites at range 1. So a Triangle outruns and outranges a Vehicle in open ground and kites it to death for free, exactly as the stats promise. The counter is not a better unit. It is a map edge. Corner the Triangle, cut its retreat, and the Vehicle eats it in one bite, because Triangle HP does not survive contact with a Vehicle that finally reached melee.
 
 An attack-stance Triangle has 8 HP. Two Vehicle hits kill it regardless of the Vehicle's stance. Aggression is a real commitment, not a discount.
 
@@ -120,7 +120,7 @@ Triangles get one exception, because they are supposed to feel like a swarm. Und
 
 Each side starts with two Workers. Every fourth turn, a Core mints one more for free, straight onto the first open tile around it. New hire, no benefits. Workers can't be built, only born, which means your labor supply is a clock you do not control.
 
-Everything else is built by Workers, and building locks the Worker in place for the duration. A Vehicle takes five turns. A Triangle takes three. During those turns the Worker ignores movement orders entirely, because it is busy, and the log will pulse it so you can see it working. If the spawn ring around a finished build is completely packed, the build simply waits one more turn rather than stacking two things on one tile.
+Everything else is built by Workers, and building locks the Worker in place for the duration. A Vehicle takes three turns. A Triangle takes two. During those turns the Worker ignores movement orders entirely, because it is busy, and the log will pulse it so you can see it working. If the spawn ring around a finished build is completely packed, the build simply waits one more turn rather than stacking two things on one tile.
 
 ## How a match ends
 
@@ -129,15 +129,23 @@ Win conditions are checked in this exact order at the end of every relevant phas
 | # | Condition | Outcome |
 |---|-----------|---------|
 | 1 | An enemy Core reaches 0 HP | Immediate win, match stops early |
-| 2 | Turn 30 finishes, both Cores alive | Higher Core HP percent wins |
+| 2 | Turn 40 finishes, both Cores alive | Higher Core HP percent wins |
 | 3 | Core HP percent tied | Higher total remaining unit HP wins |
 | 4 | Still tied | Draw. Both machines stand down. |
+
+In practice nobody reaches row 2 with both Cores standing, because of the meltdown below. Row 4 is not decoration: the meltdown drains both Cores in lockstep, so equal-HP burnouts, and therefore genuine draws, actually happen.
 
 <div align="center">
 <img src="assets/readme/spot-b.png" alt="Both brain-mech commanders share burgers in lawn chairs while their cores burn behind them. Caption: TURN 27: NOBODY FOUGHT" width="820">
 </div>
 
-There is a fourth way to end, and it is the funniest one. The Cores start 21 Chebyshev tiles apart, so first contact lands around turn 16. If, past turn 20, a full turn passes with zero combat and zero Core damage, the stagnation tax fires: both Cores lose 20 HP at once. Two models that each decide the safe play is to sit back and hold do not produce a stalemate. They produce a mutual suicide on a timer. The match ends not because someone won but because both sides were, in the engine's blunt bookkeeping, cowards. If that final tax kills both Cores in the same tick, the standard tiebreak resolves it anyway.
+There is a fourth way to end, and it is the funniest one. The Cores start 21 Chebyshev tiles apart, and with units now moving five to nine tiles a turn first contact lands early, well inside the first ten turns. Between turn 20 and turn 30, if a full turn passes with zero combat and zero Core damage, the coward tax fires: both Cores lose 20 HP at once. Two models that each decide the safe play is to sit back and hold do not produce a stalemate. They produce a mutual suicide on a timer. The match ends not because someone won but because both sides were, in the engine's blunt bookkeeping, cowards. If that tax kills both Cores in the same tick, the standard tiebreak resolves it.
+
+<div align="center">
+<img src="assets/readme/meltdown.jpg" alt="The board mid-match under a red DATACENTER MELTDOWN hazard banner, edges glowing red, both Cores bleeding out in lockstep" width="820">
+</div>
+
+There is a fifth way, and it does not care whether anyone was brave. From turn 30 on, the datacenter itself starts cooking: every turn, both Cores lose 20 HP, no conditions and no appeal. Ten turns of that is a full Core's worth of health, so the match physically cannot coast to turn 40 with both Cores standing. One Core hits zero first and that side loses, or they cross zero on the same tick and the tiebreak sorts it, right down to a real draw. The coward tax punished cowardice. The meltdown punishes existing. The board tells you: a red hazard strip slams across the center reading DATACENTER MELTDOWN, a siren goes off, and the edges of the screen bleed red and pulse for the rest of the match. It is the get-with-the-program bell.
 
 ## What the model actually sees, and says
 
@@ -147,9 +155,9 @@ Before turn one, each side is asked for a doctrine, blind, with no view of the o
 {
   "you": "A",
   "turn": 14,
-  "turn_limit": 30,
+  "turn_limit": 40,
   "cores": { "A": {"pos":[1,1],"hp":155}, "B": {"pos":[22,12],"hp":180} },
-  "your_units":  [ {"id":"A_v1","type":"vehicle","pos":[8,6],"hp":60,"move":3,"range":1} ],
+  "your_units":  [ {"id":"A_v1","type":"vehicle","pos":[8,6],"hp":60,"move":6,"range":1} ],
   "enemy_units": [ {"id":"B_t2","type":"triangle","pos":[13,7],"hp":16} ]
 }
 ```
@@ -195,7 +203,7 @@ Every half-turn appends a `TurnLog` to a replay object: what moved, what got bui
 
 The engine produces data. It has never seen a canvas and does not know one exists. A completely separate renderer reads the `TurnLog` stream and turns it into 400 to 600 millisecond tweens, combat flashes, focus-fire beams, death fades, and Core hit shocks. Neither system needs to know the other is there beyond the shape of the log. You can delete the renderer and the match still resolves correctly in memory. You can delete the engine and the renderer has nothing true to say.
 
-The strange consequence is the "thinking" state. While a model spends its forty seconds computing, no orders exist yet, so there is nothing to animate. Except the board is full of motion anyway: idle fidgets, small skirmish loops, units breathing. All of it is theater keyed on the exact moment when no decision has been made. The screen looks busiest precisely when nothing has been decided.
+The strange consequence is the "thinking" state. While a model spends its sixty seconds computing, no orders exist yet, so there is nothing to animate. Except the board is full of motion anyway: idle fidgets, small skirmish loops, units breathing. All of it is theater keyed on the exact moment when no decision has been made. The screen looks busiest precisely when nothing has been decided.
 
 One more thing you cannot see, which is the point. Browsers freeze their animation loop when a tab is hidden or occluded. A separate tick keeps the match machine advancing regardless. Minimize the window and the machines keep fighting in the dark, and you come back to a corpse.
 
@@ -218,7 +226,8 @@ Most of these are not bugs. They are the rules doing exactly what they say, whic
 | Focus target out of range | Unit fires at nothing, strictly, no fallback |
 | Spawn ring fully packed | Build waits a turn instead of stacking |
 | Both Cores die in one phase | Higher HP percent wins, then unit HP, then draw |
-| Both sides stall past turn 20 | Stagnation tax bleeds both Cores 20 a turn until someone acts or dies |
+| Both sides stall on turns 20-30 | Coward tax bleeds both Cores 20 a turn until someone acts |
+| Nobody has won by turn 30 | Datacenter meltdown bleeds both Cores 20 a turn, turns 30-40, no exceptions |
 
 Partial salvage is the governing idea. A half-broken order set does not blow up the turn. The engine keeps every legal instruction and drops only the specific thing that was wrong. Ambiguity costs you the opportunity, never extra damage.
 
@@ -274,7 +283,7 @@ It walks movement clamps, landing exclusivity, build timing, simultaneous mutual
 
 The map is flat and fixed on purpose, so a match result is attributable to the models and not to terrain luck. That is also the most obvious thing to break later. Obstacles and cover would turn positioning from a stat comparison into a real spatial problem. Seeded or randomized maps would let two models fight the same doctrine across a hundred boards and actually measure which one travels. Neither exists yet. Both are written down.
 
-Everything above already runs. What is still open is smaller and stranger: whether two identical models, handed the same blind doctrine slot and no randomness between them, drift apart at all, or whether the first move that breaks symmetry decides the entire match thirty turns before the Core falls.
+Everything above already runs. What is still open is smaller and stranger: whether two identical models, handed the same blind doctrine slot and no randomness between them, drift apart at all, or whether the first move that breaks symmetry decides the entire match forty turns before the Core falls.
 
 ---
 

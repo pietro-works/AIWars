@@ -37,7 +37,7 @@
         gridSize:  meta.gridSize || { w: 24, h: 14 },
         cores:     meta.cores || { A: [1, 1], B: [22, 12] },
         players:   { A: normPlayer(players.A), B: normPlayer(players.B) },
-        turnLimit: (typeof meta.turnLimit === 'number') ? meta.turnLimit : 30
+        turnLimit: (typeof meta.turnLimit === 'number') ? meta.turnLimit : 40
       },
       stanceDeclarations: (meta.stanceDeclarations && typeof meta.stanceDeclarations === 'object')
         ? meta.stanceDeclarations : {},

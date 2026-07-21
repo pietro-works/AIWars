@@ -47,20 +47,21 @@ function byId(state, id){ return state.units.find(u => u.id === id) || null; }
 function idle(s){ return Engine.halfTurn(s, s.half, EMPTY).state; }
 
 // ═══ constants sanity ═══════════════════════════════════════════════════════
-test('CONST matches the 24x14 retune + 2026-07-04 balance pass', () => {
+test('CONST matches the retune + 2026-07-21 balance pass', () => {
   assertEq(CONST.GRID, { W: 24, H: 14 });
   assertEq(CONST.CORE_POS, { A: [1,1], B: [22,12] });
-  assertEq(CONST.TURN_LIMIT, 30);
+  assertEq(CONST.TURN_LIMIT, 40);
   assertEq(CONST.CORE, { hp: 200, attack: 5, range: 2 });
-  assertEq(CONST.BUILD_TURNS, { vehicle: 5, triangle: 3 });
-  // movement +50%, unit attacks +25% (rounded half up); hp/ranges unchanged
+  assertEq(CONST.BUILD_TURNS, { vehicle: 3, triangle: 2 });
+  // 2026-07-21: flat +3 move on every unit/stance; hp/atk/ranges unchanged
   assertEq(CONST.UNITS, {
-    worker:   { default:{hp:20,atk:0,move:2,range:0}, attack:{hp:10,atk:0,move:2,range:0}, defense:{hp:30,atk:0,move:2,range:0} },
-    vehicle:  { default:{hp:60,atk:10,move:3,range:1}, attack:{hp:30,atk:15,move:3,range:1}, defense:{hp:90,atk:5,move:3,range:1} },
-    triangle: { default:{hp:16,atk:4,move:6,range:2}, attack:{hp:8,atk:5,move:6,range:2}, defense:{hp:24,atk:3,move:6,range:2} },
+    worker:   { default:{hp:20,atk:0,move:5,range:0}, attack:{hp:10,atk:0,move:5,range:0}, defense:{hp:30,atk:0,move:5,range:0} },
+    vehicle:  { default:{hp:60,atk:10,move:6,range:1}, attack:{hp:30,atk:15,move:6,range:1}, defense:{hp:90,atk:5,move:6,range:1} },
+    triangle: { default:{hp:16,atk:4,move:9,range:2}, attack:{hp:8,atk:5,move:9,range:2}, defense:{hp:24,atk:3,move:9,range:2} },
   });
   assertEq(CONST.TRIANGLE_FOCUS_TARGETS, 3);
   assertEq(CONST.STAGNATION, { afterTurn: 20, dmg: 20 });
+  assertEq(CONST.MELTDOWN, { fromTurn: 30, dmg: 20 });
 });
 
 // ═══ createMatch / statFor / turnPayload ════════════════════════════════════
@@ -92,9 +93,9 @@ test('createMatch: initial state shape, 2 workers per side adjacent to core', ()
 
 test('statFor derives stance stats, never per-unit storage', () => {
   const s = mk({ stances: { A: { worker:'defense', vehicle:'attack', triangle:'default' }, B: { worker:'default', vehicle:'default', triangle:'defense' } } });
-  assertEq(Engine.statFor(s, unit('A_v9','A','vehicle',[0,0],1)), { hp: 30, atk: 15, move: 3, range: 1 });
-  assertEq(Engine.statFor(s, unit('A_w9','A','worker',[0,0],1)), { hp: 30, atk: 0, move: 2, range: 0 });
-  assertEq(Engine.statFor(s, unit('B_t9','B','triangle',[0,0],1)), { hp: 24, atk: 3, move: 6, range: 2 });
+  assertEq(Engine.statFor(s, unit('A_v9','A','vehicle',[0,0],1)), { hp: 30, atk: 15, move: 6, range: 1 });
+  assertEq(Engine.statFor(s, unit('A_w9','A','worker',[0,0],1)), { hp: 30, atk: 0, move: 5, range: 0 });
+  assertEq(Engine.statFor(s, unit('B_t9','B','triangle',[0,0],1)), { hp: 24, atk: 3, move: 9, range: 2 });
 });
 
 test('turnPayload: §12.4 shape, full visibility, building exposed snake_case', () => {
@@ -110,8 +111,8 @@ test('turnPayload: §12.4 shape, full visibility, building exposed snake_case', 
   assertEq(p.your_core_hp, 178); assertEq(p.enemy_core_hp, 200);
   assertEq(p.grid, { width: 24, height: 14 });
   assertEq(p.your_units.length, 2);
-  assertEq(p.your_units[0], { id:'A_w1', type:'worker', pos:[3,2], hp:20, move_range:2, attack_range:0, building:{ produces:'vehicle', completes_turn:9 } });
-  assertEq(p.your_units[1], { id:'A_v1', type:'vehicle', pos:[9,8], hp:60, move_range:3, attack_range:1 });
+  assertEq(p.your_units[0], { id:'A_w1', type:'worker', pos:[3,2], hp:20, move_range:5, attack_range:0, building:{ produces:'vehicle', completes_turn:9 } });
+  assertEq(p.your_units[1], { id:'A_v1', type:'vehicle', pos:[9,8], hp:60, move_range:6, attack_range:1 });
   assertEq(p.visible_enemy_units, [{ id:'B_t1', type:'triangle', pos:[11,9], hp:16 }]);
   assertEq(p.your_stance_doctrine, { worker:'default', vehicle:'default', triangle:'default' });
   // payload is detached from state
@@ -145,19 +146,19 @@ test('movement: within range lands exactly on target, clamped=false', () => {
 
 test('movement: clamp along line via greedy sign-steps', () => {
   const s = mk();
-  s.units = [unit('A_v1','A','vehicle',[5,5],60)]; // move 3
-  const { state, log } = Engine.halfTurn(s, 'A', { ...EMPTY, orders: [{ unit:'A_v1', target:[10,9] }] }); // cheb 5
-  // steps: [6,6] -> [7,7] -> [8,8]; stops at exactly move-range Chebyshev steps
-  assertEq(byId(state,'A_v1').pos, [8,8]);
+  s.units = [unit('A_v1','A','vehicle',[5,5],60)]; // move 6
+  const { state, log } = Engine.halfTurn(s, 'A', { ...EMPTY, orders: [{ unit:'A_v1', target:[12,12] }] }); // cheb 7 > move 6
+  // steps: [6,6]..[11,11]; stops at exactly move-range Chebyshev steps
+  assertEq(byId(state,'A_v1').pos, [11,11]);
   assertEq(log.ordersApplied[0].clamped, true);
 });
 
 test('movement: straight-ish diagonal exhausts dy first then runs straight', () => {
   const s = mk();
-  s.units = [unit('A_t1','A','triangle',[5,5],16)]; // move 6
-  const { state } = Engine.halfTurn(s, 'A', { ...EMPTY, orders: [{ unit:'A_t1', target:[14,8] }] }); // cheb 9
-  // [6,6] [7,7] [8,8] [9,8] [10,8] [11,8]
-  assertEq(byId(state,'A_t1').pos, [11,8]);
+  s.units = [unit('A_t1','A','triangle',[5,5],16)]; // move 9
+  const { state } = Engine.halfTurn(s, 'A', { ...EMPTY, orders: [{ unit:'A_t1', target:[20,8] }] }); // cheb 15 > move 9
+  // [6,6][7,7][8,8] then straight [9,8]..[14,8] = 9 steps
+  assertEq(byId(state,'A_t1').pos, [14,8]);
 });
 
 test('movement: mid-build worker ignores move orders', () => {
@@ -209,12 +210,13 @@ test('movement: corner-boxed unit escapes through its neighbors', () => {
 test('movement: clamped short onto an occupied tile re-resolves the landing', () => {
   const s = mk();
   s.units = [
-    unit('A_v1','A','vehicle',[5,5],60),   // move 3: clamp point is [8,5]
-    unit('A_w9','A','worker',[8,5],20),    // squatting exactly there
+    unit('A_v1','A','vehicle',[5,5],60),   // move 6: clamp point is [11,5]
+    unit('A_w9','A','worker',[11,5],20),   // squatting exactly there
   ];
-  const { state, log } = Engine.halfTurn(s, 'A', { ...EMPTY, orders: [{ unit:'A_v1', target:[10,5] }] });
-  // ring r=1 around [8,5], closest to [5,5] (d=2), first in clockwise walk: [7,6]
-  assertEq(byId(state,'A_v1').pos, [7,6]);
+  const { state, log } = Engine.halfTurn(s, 'A', { ...EMPTY, orders: [{ unit:'A_v1', target:[20,5] }] }); // cheb 15 > move 6
+  // clamps 6 east to [11,5] (occupied) -> re-resolve: ring r=1 around [11,5],
+  // closest to [5,5] (d=5), first in clockwise-from-north walk: [10,6]
+  assertEq(byId(state,'A_v1').pos, [10,6]);
   assertEq(log.ordersApplied[0].clamped, true);
 });
 
@@ -235,18 +237,17 @@ test('movement: two movers to the same tile — first in array order wins', () =
 });
 
 // ═══ builds ═════════════════════════════════════════════════════════════════
-test('build timing: triangle completes on turn+3, spawn adjacent [0,-1] first', () => {
+test('build timing: triangle completes on turn+2, spawn adjacent [0,-1] first', () => {
   let s = mk();
   s.units = [unit('A_w1','A','worker',[5,5],20)];
   const r1 = Engine.halfTurn(s, 'A', { ...EMPTY, builds: [{ worker:'A_w1', produces:'triangle' }] });
-  assertEq(r1.log.buildsStarted, [{ worker:'A_w1', produces:'triangle', completesTurn: 4 }]);
-  assertEq(byId(r1.state,'A_w1').building, { produces:'triangle', completesTurn: 4 });
+  assertEq(r1.log.buildsStarted, [{ worker:'A_w1', produces:'triangle', completesTurn: 3 }]);
+  assertEq(byId(r1.state,'A_w1').building, { produces:'triangle', completesTurn: 3 });
   s = r1.state;
-  // idle through t1 B, t2 B, t2 A, t3 A, t3 B -> arrive at t4 with B first
-  while (!(s.turn === 4 && s.half === 'B')) s = idle(s);
-  assert(byId(s,'A_t1') === null, 'triangle must not exist before A half of t4');
-  s = idle(s);                        // t4 B half (B core spawn happens here)
-  const r2 = Engine.halfTurn(s, 'A', EMPTY); // t4 A half: completion fires
+  // idle to turn 3's A half (odd turn -> A first), where the completion fires
+  while (!(s.turn === 3 && s.half === 'A')) s = idle(s);
+  assert(byId(s,'A_t1') === null, 'triangle must not exist before A half of t3');
+  const r2 = Engine.halfTurn(s, 'A', EMPTY); // t3 A half: completion fires
   const t = byId(r2.state, 'A_t1');
   assert(t, 'A_t1 spawned');
   assertEq(t.pos, [5,4], 'first offset [0,-1] from builder');
@@ -255,16 +256,16 @@ test('build timing: triangle completes on turn+3, spawn adjacent [0,-1] first', 
   assertEq(r2.log.buildsCompleted, [{ worker:'A_w1', produces:'triangle', unitId:'A_t1', pos:[5,4] }]);
 });
 
-test('build timing: vehicle completes on turn+5', () => {
+test('build timing: vehicle completes on turn+3', () => {
   let s = mk();
   s.units = [unit('A_w1','A','worker',[10,10],20)];
   s = Engine.halfTurn(s, 'A', { ...EMPTY, builds: [{ worker:'A_w1', produces:'vehicle' }] }).state;
-  // idle everything until A's half of turn 6
-  while (!(s.turn === 6 && s.half === 'A')) s = idle(s);
+  // idle everything until A's half of turn 4 (completesTurn = 1 + 3 = 4)
+  while (!(s.turn === 4 && s.half === 'A')) s = idle(s);
   assert(byId(s,'A_v1') === null, 'no vehicle before completion half');
   s = idle(s);
   const v = byId(s,'A_v1');
-  assert(v, 'A_v1 spawned on turn 6'); assertEq(v.hp, 60);
+  assert(v, 'A_v1 spawned on turn 4'); assertEq(v.hp, 60);
 });
 
 test('spawn adjacency: skips off-grid and core tiles in fixed offset order', () => {
@@ -628,15 +629,47 @@ test('stagnation double-kill resolves via the mutual-kill tiebreak chain', () =>
   assertEq(r3.state.result, { winner:'draw', reason:'draw', finalTurn: 25 });
 });
 
-test('turn-30 stagnation kill beats the time-limit tiebreak', () => {
-  // Time limit alone would compare clamped HP; the stagnation bleed kills
-  // core B outright first, so the result is core_destroyed, not core_hp.
-  const s = mk({ turn: 30, half: 'B' });   // B first on even turns
+// ═══ datacenter meltdown (turns 30-40, unconditional) ═══════════════════════
+test('meltdown: bleeds BOTH cores 20 every turn from turn 30, even WITH combat', () => {
+  // lastAggroTurn=30 marks combat this turn; unlike the coward tax, meltdown fires anyway.
+  const s = mk({ turn: 30, half: 'A', lastAggroTurn: 30 });   // even turn -> A completes
+  s.cores.A.hp = 150; s.cores.B.hp = 150;
+  const { state, log } = Engine.halfTurn(s, 'A', EMPTY);
+  assertEq(state.cores.A.hp, 130); assertEq(state.cores.B.hp, 130);
+  assertEq(log.coreDamage, [{ core:'A', dmg:20, from:'meltdown' }, { core:'B', dmg:20, from:'meltdown' }]);
+  assertEq(state.result, null);   // both survive this tick
+});
+
+test('meltdown: single-core burnout ends immediately as core_destroyed', () => {
+  const s = mk({ turn: 34, half: 'A' });   // even turn -> B first, A completes
   s.cores.A.hp = 100; s.cores.B.hp = 15;
-  const mid = Engine.halfTurn(s, 'B', EMPTY).state;
-  const { state } = Engine.halfTurn(mid, 'A', EMPTY);
-  assertEq(state.result, { winner:'A', reason:'core_destroyed', finalTurn: 30 });
+  const { state } = Engine.halfTurn(s, 'A', EMPTY);
+  assertEq(state.result, { winner:'A', reason:'core_destroyed', finalTurn: 34 });
   assertEq(state.cores.A.hp, 80); assertEq(state.cores.B.hp, 0);
+});
+
+test('meltdown: equal-HP burnout with equal units resolves as a DRAW (the tie path)', () => {
+  const s = mk({ turn: 38, half: 'A' });   // even turn -> A completes; 38 not %4, no core spawn
+  s.cores.A.hp = 20; s.cores.B.hp = 20;    // both cross zero on the same meltdown tick
+  const { state } = Engine.halfTurn(s, 'A', EMPTY);
+  assertEq(state.cores.A.hp, 0); assertEq(state.cores.B.hp, 0);
+  assertEq(state.result, { winner:'draw', reason:'draw', finalTurn: 38 });
+});
+
+test('meltdown: equal-HP burnout, unequal units -> unit-HP tiebreak (not arbitrary)', () => {
+  const s = mk({ turn: 34, half: 'A' });   // 34 not %4, no core spawn to skew unit HP
+  s.cores.A.hp = 20; s.cores.B.hp = 20;
+  s.units = s.units.filter(u => u.id !== 'B_w2');   // A keeps more unit HP
+  const { state } = Engine.halfTurn(s, 'A', EMPTY);
+  assertEq(state.result, { winner:'A', reason:'unit_hp', finalTurn: 34 });
+});
+
+test('meltdown does not fire before turn 30 (coward tax owns 21-29)', () => {
+  const s = mk({ turn: 29, half: 'B', lastAggroTurn: 29 });   // odd turn -> B completes; combat -> no coward tax
+  s.cores.A.hp = 150; s.cores.B.hp = 150;
+  const { state, log } = Engine.halfTurn(s, 'B', EMPTY);
+  assertEq(state.cores.A.hp, 150); assertEq(state.cores.B.hp, 150);   // no bleed at all
+  assertEq(log.coreDamage, []);
 });
 
 // ═══ win conditions ═════════════════════════════════════════════════════════
@@ -684,33 +717,38 @@ test('mutual core kill, everything tied: draw', () => {
   assertEq(state.result, { winner:'draw', reason:'draw', finalTurn: 1 });
 });
 
-test('turn limit: core HP% tiebreak after both halves of turn 30', () => {
-  // turn 30 is even -> B first, A second; state below is mid-turn-30, A's half left.
-  // lastAggroTurn=30 keeps stagnation out of the way: pure time-limit path.
-  const s = mk({ turn: 30, half: 'A', lastAggroTurn: 30 });
+test('turn limit: core HP% tiebreak after both halves of turn 40', () => {
+  // turn 40 is even -> B first, A second; state below is mid-turn-40, A's half left.
+  // cores set high enough to survive the turn-40 meltdown tick (-20 each), so the
+  // pure time-limit HP% path resolves it.
+  const s = mk({ turn: 40, half: 'A', lastAggroTurn: 40 });
   s.cores.A.hp = 150; s.cores.B.hp = 100;
   const { state } = Engine.halfTurn(s, 'A', EMPTY);
-  assertEq(state.result, { winner:'A', reason:'core_hp', finalTurn: 30 });
+  assertEq(state.result, { winner:'A', reason:'core_hp', finalTurn: 40 });  // 130 vs 80 after meltdown
 });
 
 test('turn limit: equal core HP -> unit HP tiebreak', () => {
-  const s = mk({ turn: 30, half: 'A', lastAggroTurn: 30 });
+  // run BOTH halves of turn 40 so the turn-40 core spawn (40 %4==0) is symmetric;
+  // A starts down one worker and stays down after both sides mint.
+  const s = mk({ turn: 40, half: 'B', lastAggroTurn: 40 });
   s.units = s.units.filter(u => u.id !== 'A_w2'); // A loses 20 unit hp
-  const { state } = Engine.halfTurn(s, 'A', EMPTY);
-  assertEq(state.result, { winner:'B', reason:'unit_hp', finalTurn: 30 });
+  const mid = Engine.halfTurn(s, 'B', EMPTY).state;
+  const { state } = Engine.halfTurn(mid, 'A', EMPTY);   // both cores 200->180, equal
+  assertEq(state.result, { winner:'B', reason:'unit_hp', finalTurn: 40 });
 });
 
 test('turn limit: everything tied -> draw', () => {
-  const s = mk({ turn: 30, half: 'A', lastAggroTurn: 30 });
-  const { state } = Engine.halfTurn(s, 'A', EMPTY);
-  assertEq(state.result, { winner:'draw', reason:'draw', finalTurn: 30 });
+  const s = mk({ turn: 40, half: 'B', lastAggroTurn: 40 });
+  const mid = Engine.halfTurn(s, 'B', EMPTY).state;
+  const { state } = Engine.halfTurn(mid, 'A', EMPTY);   // both cores 200->180, symmetric spawns
+  assertEq(state.result, { winner:'draw', reason:'draw', finalTurn: 40 });
 });
 
-test('no premature end: half-turns before turn 30 second half never time out', () => {
-  const s = mk({ turn: 30, half: 'B' }); // B is FIRST mover on even turns
+test('no premature end: first half of the final turn never times out', () => {
+  const s = mk({ turn: 40, half: 'B' }); // B is FIRST mover on even turns
   const { state } = Engine.halfTurn(s, 'B', EMPTY);
-  assertEq(state.result, null, 'first half of turn 30 must not end the match');
-  assertEq(state.turn, 30); assertEq(state.half, 'A');
+  assertEq(state.result, null, 'first half of turn 40 must not end the match');
+  assertEq(state.turn, 40); assertEq(state.half, 'A');
 });
 
 // ═══ turn/half advancement ══════════════════════════════════════════════════
@@ -722,7 +760,7 @@ test('alternating first mover: A on odd turns, B on even turns', () => {
   assertEq(s.turn, 5); assertEq(s.half, 'A');
 });
 
-test('smoke: full idle match runs 60 half-turns to a stagnation-bled draw', () => {
+test('smoke: full idle match ends in a symmetric draw as the datacenter melts', () => {
   let s = mk();
   let halves = 0;
   while (!s.result){
@@ -731,7 +769,8 @@ test('smoke: full idle match runs 60 half-turns to a stagnation-bled draw', () =
     assert(halves <= 60, 'match must end within 60 half-turns');
   }
   assertEq(halves, 60);
-  // turns 21..30 each bleed both cores 20 -> both hit 0 on turn 30, symmetric draw
+  // coward tax bleeds both cores 20 on turns 21..29 (180), then the turn-30
+  // meltdown tick takes the last 20 -> both hit 0 on turn 30, symmetric draw
   assertEq(s.result, { winner:'draw', reason:'draw', finalTurn: 30 });
   assertEq(s.cores.A.hp, 0); assertEq(s.cores.B.hp, 0);
   // 2 starters + core spawns on turns 4,8,...,28 (7 each side)

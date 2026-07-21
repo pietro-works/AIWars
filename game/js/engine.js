@@ -11,19 +11,21 @@
   const CONST = NS.CONST = {
     GRID: { W: 24, H: 14 },
     CORE_POS: { A: [1, 1], B: [22, 12] },
-    TURN_LIMIT: 30,
+    TURN_LIMIT: 40,
     CORE: { hp: 200, attack: 5, range: 2 },
-    CORE_WORKER_EVERY: 4,               // spawn turns 4,8,12,16,20,24,28
-    // 2026-07-04 balance pass: movement +50%, unit attacks +25% (round half up:
-    // 1.5->2, 3.75->4, 2.5->3). Core attack intentionally untouched.
+    CORE_WORKER_EVERY: 4,               // spawn turns 4,8,12,...,36,40
+    // 2026-07-04 balance pass: movement +50%, unit attacks +25% (round half up).
+    // 2026-07-21 balance pass: flat +3 move on every unit/stance (worker 5,
+    // vehicle 6, triangle 9). hp/atk/range untouched.
     UNITS: {
-      worker:   { default:{hp:20,atk:0,move:2,range:0}, attack:{hp:10,atk:0,move:2,range:0}, defense:{hp:30,atk:0,move:2,range:0} },
-      vehicle:  { default:{hp:60,atk:10,move:3,range:1}, attack:{hp:30,atk:15,move:3,range:1}, defense:{hp:90,atk:5,move:3,range:1} },
-      triangle: { default:{hp:16,atk:4,move:6,range:2}, attack:{hp:8,atk:5,move:6,range:2}, defense:{hp:24,atk:3,move:6,range:2} },
+      worker:   { default:{hp:20,atk:0,move:5,range:0}, attack:{hp:10,atk:0,move:5,range:0}, defense:{hp:30,atk:0,move:5,range:0} },
+      vehicle:  { default:{hp:60,atk:10,move:6,range:1}, attack:{hp:30,atk:15,move:6,range:1}, defense:{hp:90,atk:5,move:6,range:1} },
+      triangle: { default:{hp:16,atk:4,move:9,range:2}, attack:{hp:8,atk:5,move:9,range:2}, defense:{hp:24,atk:3,move:9,range:2} },
     },
     TRIANGLE_FOCUS_TARGETS: 3,          // triangles focus-fire up to 3 enemies at once
-    STAGNATION: { afterTurn: 20, dmg: 20 },  // full turn >20 with zero combat -> both cores bleed
-    BUILD_TURNS: { vehicle: 5, triangle: 3 },  // workers not buildable
+    STAGNATION: { afterTurn: 20, dmg: 20 },  // coward tax: quiet full turn in (20, MELTDOWN.fromTurn) -> both cores bleed
+    MELTDOWN: { fromTurn: 30, dmg: 20 },     // datacenter meltdown: turns 30-40, both cores -20 EVERY turn, unconditional
+    BUILD_TURNS: { vehicle: 3, triangle: 2 },  // workers not buildable
     START_WORKERS: 2,
     LLM_TIMEOUT_MS: 60000,
     LLM_RETRIES: 2,
@@ -400,13 +402,15 @@
     return rawCoreHp;
   }
 
-  // Stagnation rule: once past STAGNATION.afterTurn, a FULL turn (both halves)
+  // Stagnation (coward tax): on turns strictly between STAGNATION.afterTurn (20)
+  // and MELTDOWN.fromTurn (30) — i.e. turns 21-29 — a FULL turn (both halves)
   // with zero combat events and zero core damage bleeds BOTH cores. Runs on the
-  // second mover's half, after combat, before the turn advances — so a
-  // stagnation kill on turn 30 beats the time-limit tiebreak.
+  // second mover's half, after combat, before the turn advances. Meltdown owns
+  // turns 30+ (unconditional), so the coward tax stops there to avoid double-tax.
   function applyStagnation(s, side, log){
     if (s.result) return;
-    if (s.turn <= CONST.STAGNATION.afterTurn) return;
+    if (s.turn <= CONST.STAGNATION.afterTurn) return;   // not before turn 21
+    if (s.turn >= CONST.MELTDOWN.fromTurn) return;       // meltdown takes over at 30
     if (side === firstMoverOf(s.turn)) return;      // only when the turn is completing
     if (s.lastAggroTurn === s.turn) return;         // someone fought this turn
     const dmg = CONST.STAGNATION.dmg;
@@ -415,6 +419,27 @@
     s.cores.B.hp = Math.max(0, raw.B);
     log.coreDamage.push({ core: 'A', dmg, from: 'stagnation' });
     log.coreDamage.push({ core: 'B', dmg, from: 'stagnation' });
+    checkCoreDeath(s, raw);
+  }
+
+  // Datacenter meltdown: from MELTDOWN.fromTurn (30) to TURN_LIMIT (40) the
+  // datacenter cooks BOTH cores for a flat MELTDOWN.dmg (20) EVERY turn,
+  // regardless of combat. Runs on the completing (second-mover) half, once per
+  // turn, BEFORE advance so a meltdown kill beats the time-limit tiebreak. Passes
+  // the sub-zero raw HP to checkCoreDeath: equal-HP mutual burnout -> unit-HP
+  // tiebreak -> DRAW; unequal -> correct core_hp winner; single-core burnout ->
+  // instant core_destroyed. Ten unconditional ticks drain a full 200 core, so
+  // the match physically cannot coast to turn 40 with both cores standing.
+  function applyMeltdown(s, side, log){
+    if (s.result) return;
+    if (s.turn < CONST.MELTDOWN.fromTurn) return;
+    if (side === firstMoverOf(s.turn)) return;      // only when the turn is completing
+    const dmg = CONST.MELTDOWN.dmg;
+    const raw = { A: s.cores.A.hp - dmg, B: s.cores.B.hp - dmg };
+    s.cores.A.hp = Math.max(0, raw.A);
+    s.cores.B.hp = Math.max(0, raw.B);
+    log.coreDamage.push({ core: 'A', dmg, from: 'meltdown' });
+    log.coreDamage.push({ core: 'B', dmg, from: 'meltdown' });
     checkCoreDeath(s, raw);
   }
 
@@ -500,7 +525,8 @@
     applyCoreSpawn(s, side, log);               // 4
     const rawCoreHp = resolveCombat(s, log);    // 5
     checkCoreDeath(s, rawCoreHp);               // 6
-    applyStagnation(s, side, log);              // 6b: passivity tax past turn 20
+    applyStagnation(s, side, log);              // 6b: coward tax, quiet turns 21-29
+    applyMeltdown(s, side, log);                // 6c: datacenter meltdown, turns 30-40
     advance(s);                                 // 7
 
     log.resultingState = clone(s);
