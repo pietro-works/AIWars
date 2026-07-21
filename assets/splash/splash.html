@@ -475,7 +475,7 @@ html, body { margin: 0; padding: 0; background: #030109; overflow: hidden; }
 (function (g) {
   'use strict';
   var SRC = './Gold_Medal_Sprint.mp3';
-  var VOL = 1.0;                 /* full volume — routed straight to output, not through the 0.22 master */
+  var VOL = 1.0;                 /* song at full inside the master bus (master raised to 0.5) */
   var ctxR = null, el = null, node = null, gain = null, mutedF = false;
   function noop(){}
   if (typeof Audio === 'undefined') { g.AW_SONG = { start: noop, stop: noop, setMuted: noop }; return; }
@@ -789,7 +789,7 @@ class Component extends DCLogic {
     if (this.audio.ctx.state === 'suspended') { try { this.audio.ctx.resume(); } catch (e) {} }
     const g = this.audio.master.gain;
     g.cancelScheduledValues(this.audio.ctx.currentTime);
-    g.setTargetAtTime(this.muted ? 0 : 0.22, this.audio.ctx.currentTime, 0.25);
+    g.setTargetAtTime(this.muted ? 0 : 0.5, this.audio.ctx.currentTime, 0.25);
     this.syncSndIcon();
     if (this.muted) {
       this.stopSpeech();
@@ -964,7 +964,7 @@ class Component extends DCLogic {
       if (!this.audio || this.muted || ctx.state !== 'running') return;
       const g = this.audio.master.gain;
       g.cancelScheduledValues(ctx.currentTime);
-      g.setTargetAtTime(0.22, ctx.currentTime, 0.25);
+      g.setTargetAtTime(0.5, ctx.currentTime, 0.25);
     };
     if (ctx.state === 'suspended') { try { ctx.resume().then(up).catch(() => {}); } catch (e) {} }
     else up();
@@ -1377,7 +1377,7 @@ class Component extends DCLogic {
     if (!this._songStarted && !this.muted && !this._begun && this.audio &&
         this.audio.ctx.state === 'running' && t >= this.SLAM_T - 2.5) {
       this._songStarted = true;
-      try { if (window.AW_SONG) window.AW_SONG.start(this.audio.ctx, this.audio.ctx.destination, t - (this.SLAM_T - 2.5)); } catch (e) {}
+      try { if (window.AW_SONG) window.AW_SONG.start(this.audio.ctx, this.audio.master, t - (this.SLAM_T - 2.5)); } catch (e) {}
     }
 
     // ---- LOGO: slam from camera, then float + sheen ----
