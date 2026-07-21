@@ -37,6 +37,7 @@ const DUR_SPAWN = 250, DUR_COMBAT = 950, DUR_DEATH = 420, DUR_MIN = 160;
 const MOVE_STAGGER = 130, MOVE_BASE = 320, MOVE_PER_TILE = 130, MOVE_MAX = 1350;
 const BUBBLE_MS = 2200;
 /* theatrical volley cycles per attacker type (anticipation->action->recovery) */
+// PACS0001 — keyed by CONST.UNITS type; a missing type falls back to worker cadence (also gaitEase/idlePose/drawUnit/drawCombatFx) — AGENTS.md
 const VOLLEY = {
   worker:   { period: 2700, antic: 260, action: 240 },
   vehicle:  { period: 2500, antic: 200, action: 460 },
@@ -135,6 +136,7 @@ function rangeOf(u){
 }
 
 /* core-id detection for TurnLog attacker/target fields ('A','core_B','B_core'...) */
+// PACS0008 — must match engine core attacker id "<side>_core" or core-attack FX silently vanish — AGENTS.md
 function coreSideOf(id){
   if (typeof id !== 'string') return null;
   const m = /^(?:core[\s_-]?([ab])|([ab])[\s_-]?core|([ab]))$/i.exec(id.trim());
@@ -395,6 +397,7 @@ function startJob(log){
 
   const spawns = [];
   (log.buildsCompleted||[]).forEach(b=>{
+    // PACS0006 — recovers side from id char0 (build-spawn log has no side field); depends on engine mintId format — AGENTS.md
     if (b && b.unitId) spawns.push({ id:b.unitId, side:String(b.unitId).charAt(0), type:b.produces, pos:b.pos });
   });
   (log.coreSpawns||[]).forEach(s=>{
@@ -955,6 +958,7 @@ function drawUnit(g_, u, t){
   const img = IMGS[u.side]; if (!img) return;
   const sideUp = u.side==='a' ? 'A' : 'B';
   const stance = (scene.stances && scene.stances[sideUp] && scene.stances[sideUp][u.type]) || 'default';
+  // PACS0017 — every CONST.UNITS type needs a "<type>_default" sprite in atlas.js or the unit draws blank — AGENTS.md
   const m = META.sprites[u.type+'_'+stance] || META.sprites[u.type+'_default'];
   if (!m) return;
   const mult = u.type==='vehicle' ? 1.55 : u.type==='triangle' ? 1.35 : 1.2;

@@ -5,6 +5,7 @@
   const NS = g.AIWARS = g.AIWARS || {};
 
   // ---------------------------------------------------------------- rng ----
+  // PACS0005 — sim determinism: bots use this seeded PRNG only, never Math.random — AGENTS.md
   // mulberry32 — tiny deterministic PRNG, embedded so bots.js has zero deps.
   function mulberry32(a){
     a = a >>> 0;
@@ -45,6 +46,7 @@
     'My workers unionized against you.'
   ];
 
+  // PACS0004 — stance vocabulary; must match engine.js STANCES — AGENTS.md
   const STANCES = ['default', 'attack', 'defense'];
 
   // --------------------------------------------------------------- stance --

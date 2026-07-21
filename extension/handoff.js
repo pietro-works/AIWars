@@ -294,6 +294,7 @@
        protocol; inline prose mentions ("I will reply with AIWARS_RESULT x...")
        don't match. Prefer the LAST candidate — the real block ends the reply,
        echoes precede it. */
+    // PACS0012 — these regexes must byte-match the reply markers webtab-client.js tells the model to emit — AGENTS.md
     const marker = new RegExp('(?:^|\\n)\\s*AIWARS_RESULT\\s+' + escapeRegex(requestId) + '\\s*(?:\\n|$)', 'g');
     let best = null;
     for (const text of [...new Set(texts)]) {

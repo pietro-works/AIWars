@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AI WARS — two AIs wage eternal war over literally nothing</title>
 <meta name="description" content="AI WARS is a browser tactics game where two language models fight a turn-based grid war in 90s shareware pixel art. Give orders in plain English, or let the bots trash-talk each other. No install, no signup.">
+<!-- PACS0022 — this host must be in extension/manifest.json content_scripts matches or the bridge never injects (web-tab shows "not detected") — AGENTS.md -->
 <link rel="canonical" href="https://aiwars.lol/game/">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="theme-color" content="#0b0016">
@@ -82,6 +83,7 @@
     </div>
     <span class="hdr">DEPLOY</span>
     <div class="cards">
+      <!-- PACS0003 build-turn counts + PACS0017 data-thumb sprite keys are copied from engine CONST.BUILD_TURNS / atlas.js; keep in sync — AGENTS.md -->
       <div class="card disabled" data-produce="worker"><canvas data-thumb="worker_default"></canvas><div><div class="nm cyan">WORKER</div><div class="cost amber">AUTO</div></div></div>
       <div class="card" data-produce="vehicle"><canvas data-thumb="vehicle_default"></canvas><div><div class="nm cyan">VEHICLE</div><div class="cost amber"><i class="coin"></i>3 TURNS</div></div></div>
       <div class="card" data-produce="triangle"><canvas data-thumb="triangle_default"></canvas><div><div class="nm cyan">TRIANGLE</div><div class="cost amber"><i class="coin"></i>2 TURNS</div></div></div>
@@ -321,6 +323,7 @@ document.querySelectorAll('[data-emote]').forEach(el=>{
 
 <script src="../assets/sprites/atlas.js"></script>
 <script src="../assets/sprites/core-anim.js"></script>
+<!-- PACS0021 — new js basenames must stay lowercase-hyphen; deploy cache-bust sed matches [a-z-]*.js only — AGENTS.md -->
 <script src="js/content.js"></script>
 <script src="js/engine.js"></script>
 <script src="js/validate.js"></script>
