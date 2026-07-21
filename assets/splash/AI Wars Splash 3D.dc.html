@@ -468,6 +468,70 @@ html, body { margin: 0; padding: 0; background: #030109; overflow: hidden; }
 })(typeof window !== 'undefined' ? window : globalThis);
 </script>
 <script>
+/* AW_SONG — the splash theme (Gold_Medal_Sprint.mp3). Routed through the splash
+   master bus so it honours mute, and auto-DUCKED whenever the robot narrator is
+   speaking so the voice always sits on top and is never overpowered — the mix is
+   voice-first at the opening, song swells in the gaps. Interface mirrors AW_MUSIC
+   plus duck(on). Tune FULL / DUCK by ear if the balance is off. */
+(function (g) {
+  'use strict';
+  var SRC = './Gold_Medal_Sprint.mp3';
+  var FULL   = 0.92;   /* song level in the clear (through master 0.22 -> ~0.20) */
+  var DUCK   = 0.28;   /* song level WHILE the narrator speaks (-> ~0.06, well under the voice) */
+  var FADE_IN = 1.8;   /* gentle swell so it never blasts in on unmute */
+  var ctxR = null, el = null, node = null, gain = null;
+  var mutedF = false, ducked = false, started = false;
+  function noop(){}
+  if (typeof Audio === 'undefined') { g.AW_SONG = { start: noop, stop: noop, setMuted: noop, duck: noop }; return; }
+  function level(){ return mutedF ? 0.0001 : (ducked ? DUCK : FULL); }
+  function ensure(ctx, dest){
+    if (el) return;
+    ctxR = ctx;
+    el = new Audio(SRC); el.loop = true; el.preload = 'auto';
+    try {
+      node = ctx.createMediaElementSource(el);   /* once per element */
+      gain = ctx.createGain(); gain.gain.value = 0.0001;
+      node.connect(gain); gain.connect(dest);    /* dest = splash master */
+    } catch (e) { node = null; gain = null; }     /* fallback: element .volume below */
+  }
+  function apply(tc){
+    if (gain && ctxR){
+      var t = ctxR.currentTime;
+      gain.gain.cancelScheduledValues(t);
+      gain.gain.setValueAtTime(Math.max(0.0001, gain.gain.value), t);
+      gain.gain.setTargetAtTime(level(), t, tc || 0.12);
+    } else if (el){ el.volume = mutedF ? 0 : (ducked ? DUCK : FULL); }
+  }
+  function start(ctx, dest){
+    ensure(ctx, dest);
+    if (!el) return;
+    started = true;
+    try { var p = el.play(); if (p && p.catch) p.catch(function(){}); } catch (e) {}
+    if (gain && ctxR){
+      var t = ctxR.currentTime;
+      gain.gain.cancelScheduledValues(t);
+      gain.gain.setValueAtTime(Math.max(0.0001, gain.gain.value), t);
+      gain.gain.linearRampToValueAtTime(level(), t + FADE_IN);
+    } else { el.volume = mutedF ? 0 : (ducked ? DUCK : FULL); }
+  }
+  function duck(on){ ducked = !!on; if (started) apply(0.14); }
+  function setMuted(m){ mutedF = !!m; apply(0.05); }   /* keep the element playing so unmute is instant */
+  function stop(fadeSec){
+    var f = fadeSec || 1.0;
+    if (gain && ctxR){
+      var t = ctxR.currentTime;
+      gain.gain.cancelScheduledValues(t);
+      gain.gain.setValueAtTime(Math.max(0.0001, gain.gain.value), t);
+      gain.gain.linearRampToValueAtTime(0.0001, t + f);
+    }
+    var e2 = el;
+    setTimeout(function(){ try { if (e2) e2.pause(); } catch (e) {} }, (f * 1000) + 140);
+    started = false;
+  }
+  g.AW_SONG = { start: start, stop: stop, setMuted: setMuted, duck: duck };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script>
 /* Minimal stand-in for the design-runtime base class. The logic block below
    only ever reads this.props and relies on componentDidMount being called
    once after the DOM exists; nothing else of DCLogic was ever used. */
@@ -684,6 +748,7 @@ class Component extends DCLogic {
       this.el.root.removeEventListener('pointermove', this.onMove);
     }
     this.stopSpeech();
+    try { if (window.AW_SONG) window.AW_SONG.stop(0.2); } catch (e) {}
     if (this.audio) { try { this.audio.ctx.close(); } catch (e) {} }
   }
 
@@ -737,13 +802,13 @@ class Component extends DCLogic {
     this.syncSndIcon();
     if (this.muted) {
       this.stopSpeech();
-      try { if (window.AW_MUSIC) window.AW_MUSIC.setMuted(true); } catch (e) {}
+      try { if (window.AW_SONG) window.AW_SONG.setMuted(true); } catch (e) {}
     } else {
       if (!this._begun) {
-        /* start() no-ops when already running, so a re-unmute must reopen the
-           music bus explicitly or the theme stays gated at 0.0001 forever */
-        try { if (window.AW_MUSIC) window.AW_MUSIC.setMuted(false); } catch (e) {}
-        try { if (window.AW_MUSIC) window.AW_MUSIC.start(this.audio.ctx, this.audio.master); } catch (e) {}
+        /* start() fades the theme in; setMuted(false) reopens the bus on a
+           re-unmute so it never stays gated at 0.0001 */
+        try { if (window.AW_SONG) window.AW_SONG.setMuted(false); } catch (e) {}
+        try { if (window.AW_SONG) window.AW_SONG.start(this.audio.ctx, this.audio.master); } catch (e) {}
       }
       if (!this.skipped && !this._begun) {
         const tc = (performance.now() - this.t0) / 1000;
@@ -790,11 +855,20 @@ class Component extends DCLogic {
       const u = new SpeechSynthesisUtterance(txt);
       if (this.voice) u.voice = this.voice;
       u.pitch = 0.25; u.rate = 0.92; u.volume = 0.9;
+      /* duck the theme under the narrator; swell it back the instant the voice
+         stops. eager duck too, in case onstart arrives late. */
+      const unduck = () => { try { if (window.AW_SONG) window.AW_SONG.duck(false); } catch (e) {} };
+      u.onstart = () => { try { if (window.AW_SONG) window.AW_SONG.duck(true); } catch (e) {} };
+      u.onend = unduck; u.onerror = unduck;
+      try { if (window.AW_SONG) window.AW_SONG.duck(true); } catch (e) {}
       speechSynthesis.speak(u);
     } catch (e) {}
   }
 
-  stopSpeech() { try { if ('speechSynthesis' in window) speechSynthesis.cancel(); } catch (e) {} }
+  stopSpeech() {
+    try { if ('speechSynthesis' in window) speechSynthesis.cancel(); } catch (e) {}
+    try { if (window.AW_SONG) window.AW_SONG.duck(false); } catch (e) {}   /* voice gone -> song back up */
+  }
 
   zap(intens) {
     if (!this.audio || this.muted) return;
@@ -982,7 +1056,7 @@ class Component extends DCLogic {
     this._begun = true;
     this.beginning = true; this.beginT = 0;
     this.stopSpeech();                              /* narrator yields to the launch sting */
-    try { if (window.AW_MUSIC) window.AW_MUSIC.stop(1.2); } catch (e) {}
+    try { if (window.AW_SONG) window.AW_SONG.stop(1.2); } catch (e) {}
     this.beginChord();
     try { window.dispatchEvent(new CustomEvent('aiwars:splashbegin')); } catch (e) {}
   }
