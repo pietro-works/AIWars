@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AI Wars Bridge",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Lets AI Wars play matches through chatbot web tabs (ChatGPT, Claude, Gemini) with no API key. Opens the tab, sends the turn, reads the reply back.",
   "permissions": [
     "tabs",
@@ -15,7 +15,9 @@
     {
       "matches": [
         "*://localhost/*",
-        "*://127.0.0.1/*"
+        "*://127.0.0.1/*",
+        "*://aiwars.lol/*",
+        "*://*.aiwars.lol/*"
       ],
       "js": [
         "bridge.js"

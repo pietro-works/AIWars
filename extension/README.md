@@ -21,7 +21,7 @@ Keep the chatbot tab open while the match runs. Each match uses one fresh conver
 
 ## Notes
 
-- Works on `localhost` game pages out of the box. To use a hosted copy of the game, add its address to `content_scripts.matches` in `manifest.json` and reload the extension.
+- Works on `localhost` and the hosted game at `aiwars.lol` out of the box. To use a different hosted copy, add its address to `content_scripts.matches` in `manifest.json` and reload the extension.
 - If a reply never arrives, the game treats that turn as a pass and keeps going. After two provider failures in a row the game stops calling that side for the rest of the match, fix the login and hit REMATCH.
 - If you reload or update the extension while the game page is open, refresh the game page too, the old bridge connection dies with the reload.
 - Free chatbot tiers have message limits. A full 30 turn match sends up to 30 messages per web side.
