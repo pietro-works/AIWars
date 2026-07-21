@@ -714,7 +714,11 @@ class Component extends DCLogic {
        hotspot posts a toggle request; we always answer with the new state */
     this.onMsg = (e) => {
       const md = e && e.data;
-      if (md && md.type === 'aiwars:sndtoggle') this.toggleSound();
+      if (!md) return;
+      if (md.type === 'aiwars:sndtoggle') this.toggleSound();
+      /* parent posts this once the game console has landed: the iframe is kept
+         alive (hidden) so the theme keeps playing, ducked to a bg level. */
+      else if (md.type === 'aiwars:enterbg') this.enterBg();
     };
     addEventListener('message', this.onMsg);
 
@@ -1043,12 +1047,32 @@ class Component extends DCLogic {
     this.cam = { wx: this.KF[0].wx, wy: this.KF[0].wy, wz: this.KF[0].wz, rx: this.KF[0].rx, ry: this.KF[0].ry };
   }
 
+  /* the console has landed: keep the theme alive but drop the whole splash bus
+     to a background level (song stays dominant in the mix, ambient hum sinks
+     under it) and freeze the now-hidden 3D scene. Audio rides the media element
+     + AudioContext, both independent of the animation loop, so cancelling the
+     rAF costs nothing but CPU. SONG_BG_MASTER (0.30) is the one knob to tune. */
+  enterBg() {
+    if (this._bg) return;
+    this._bg = true;
+    try {
+      if (this.audio && this.audio.master) {
+        const g = this.audio.master.gain, t = this.audio.ctx.currentTime;
+        g.cancelScheduledValues(t);
+        g.setValueAtTime(Math.max(0.0001, g.value), t);
+        g.linearRampToValueAtTime(this.muted ? 0.0001 : 0.30, t + 1.1);  /* SONG_BG_MASTER */
+      }
+    } catch (e) {}
+    try { cancelAnimationFrame(this.raf); } catch (e) {}
+  }
+
   begin() {
     if (this._begun) return;                        /* idempotent: no double chord/flash */
     this._begun = true;
     this.beginning = true; this.beginT = 0;
     this.stopSpeech();                              /* narrator yields to the launch sting */
-    try { if (window.AW_SONG) window.AW_SONG.stop(1.2); } catch (e) {}
+    /* the theme keeps playing through the launch; the parent ducks it to a bg
+       level via aiwars:enterbg once the console lands (see enterBg). */
     this.beginChord();
     try { window.dispatchEvent(new CustomEvent('aiwars:splashbegin')); } catch (e) {}
   }

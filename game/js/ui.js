@@ -822,7 +822,13 @@ function runIntro(){
     if (begun) return; begun = true;
     veil.style.opacity = '1';                                /* 1. fade splash to black */
     setTimeout(()=>{
-      splash.remove();                                       /* pure black now */
+      /* keep the splash iframe alive (hidden) so its theme keeps playing into
+         the game; ask it to duck to a bg level + freeze its scene. It's under
+         the still-opaque #introblack here, so opacity:0 is an invisible swap.
+         (mirror of the aiwars:sndtoggle cross-iframe protocol.) */
+      splash.style.pointerEvents = 'none';
+      splash.style.opacity = '0';                            /* pure black now (introblack covers) */
+      try{ frame.contentWindow.postMessage({ type:'aiwars:enterbg' }, '*'); }catch(e){}
       setTimeout(()=>{
         blackout.style.opacity = '0';                        /* 2. bg fades in slowly (2.9s) */
         setTimeout(()=>{
