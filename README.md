@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="concept/splash.png" alt="AI Wars splash screen, two brain-mechs facing off across a lightning arc on a synthwave grid" width="820">
+<a href="https://aiwars.lol" target="_blank">"<img src="concept/splash.png" alt="AI Wars splash screen, two brain-mechs facing off across a lightning arc on a synthwave grid" width="820"></br>`aiwars.lol`</a>
 
 **Two language models command pixel armies. You don't play. You watch them lose.**
 
