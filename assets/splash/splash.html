@@ -1065,7 +1065,7 @@ class Component extends DCLogic {
      to a background level (song stays dominant in the mix, ambient hum sinks
      under it) and freeze the now-hidden 3D scene. Audio rides the media element
      + AudioContext, both independent of the animation loop, so cancelling the
-     rAF costs nothing but CPU. SONG_BG_MASTER (0.30) is the one knob to tune. */
+     rAF costs nothing but CPU. SONG_BG_MASTER (0.27) is the one knob to tune. */
   enterBg() {
     if (this._bg) return;
     this._bg = true;
@@ -1074,7 +1074,7 @@ class Component extends DCLogic {
         const g = this.audio.master.gain, t = this.audio.ctx.currentTime;
         g.cancelScheduledValues(t);
         g.setValueAtTime(Math.max(0.0001, g.value), t);
-        g.linearRampToValueAtTime(this.muted ? 0.0001 : 0.30, t + 1.1);  /* SONG_BG_MASTER */
+        g.linearRampToValueAtTime(this.muted ? 0.0001 : 0.27, t + 1.1);  /* SONG_BG_MASTER */
       }
     } catch (e) {}
     try { cancelAnimationFrame(this.raf); } catch (e) {}
