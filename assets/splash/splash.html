@@ -479,16 +479,20 @@ html, body { margin: 0; padding: 0; background: #030109; overflow: hidden; }
   'use strict';
   var SRC = './Gold_Medal_Sprint.mp3';
   var VOL = 1.0;                 /* song at full inside the master bus (master raised to 0.5) */
+  var LVL = 1.0;                 /* song-ONLY trim on top of VOL. The master bus is shared with
+                                    the hum and the splash sfx, so anything that should move the
+                                    song alone (the gameplay duck) belongs here, not on the bus. */
+  function lvlVol(){ return Math.max(0.0001, VOL * LVL); }
   var ctxR = null, el = null, node = null, gain = null, mutedF = false;
   function noop(){}
-  if (typeof Audio === 'undefined') { g.AW_SONG = { start: noop, stop: noop, setMuted: noop }; return; }
+  if (typeof Audio === 'undefined') { g.AW_SONG = { start: noop, stop: noop, setMuted: noop, setLevel: noop }; return; }
   function ensure(ctx, dest){
     if (el) return;
     ctxR = ctx;
     el = new Audio(SRC); el.loop = true; el.preload = 'auto';
     try {
       node = ctx.createMediaElementSource(el);   /* once per element */
-      gain = ctx.createGain(); gain.gain.value = mutedF ? 0.0001 : VOL;
+      gain = ctx.createGain(); gain.gain.value = mutedF ? 0.0001 : lvlVol();
       node.connect(gain); gain.connect(dest);    /* dest = splash master */
     } catch (e) { node = null; gain = null; }     /* fallback: element .volume */
   }
@@ -499,12 +503,23 @@ html, body { margin: 0; padding: 0; background: #030109; overflow: hidden; }
     if (!el) return;
     try { el.currentTime = Math.max(0, atSec || 0); } catch (e) {}
     try { var p = el.play(); if (p && p.catch) p.catch(function(){}); } catch (e) {}
-    if (gain){ gain.gain.value = mutedF ? 0.0001 : VOL; } else { el.volume = mutedF ? 0 : VOL; }
+    if (gain){ gain.gain.value = mutedF ? 0.0001 : lvlVol(); } else { el.volume = mutedF ? 0 : Math.min(1, lvlVol()); }
   }
   function setMuted(m){
     mutedF = !!m;
-    if (gain && ctxR){ var t = ctxR.currentTime; gain.gain.cancelScheduledValues(t); gain.gain.setTargetAtTime(mutedF ? 0.0001 : VOL, t, 0.05); }
-    else if (el){ el.volume = mutedF ? 0 : VOL; }
+    if (gain && ctxR){ var t = ctxR.currentTime; gain.gain.cancelScheduledValues(t); gain.gain.setTargetAtTime(mutedF ? 0.0001 : lvlVol(), t, 0.05); }
+    else if (el){ el.volume = mutedF ? 0 : Math.min(1, lvlVol()); }
+  }
+  /* setLevel(mult, fadeSec): scale the SONG only, leaving everything else on the
+     shared master bus where it was. Safe to call before the song starts — the
+     level is remembered and applied when ensure()/start() build the gain node. */
+  function setLevel(mult, fadeSec){
+    LVL = Math.max(0, mult == null ? 1 : mult);
+    if (!(gain && ctxR)){ if (el) el.volume = mutedF ? 0 : Math.min(1, lvlVol()); return; }
+    var t = ctxR.currentTime, f = fadeSec || 0;
+    gain.gain.cancelScheduledValues(t);
+    gain.gain.setValueAtTime(Math.max(0.0001, gain.gain.value), t);
+    gain.gain.linearRampToValueAtTime(mutedF ? 0.0001 : lvlVol(), t + f);
   }
   function stop(fadeSec){
     var f = fadeSec || 0.8;
@@ -517,7 +532,7 @@ html, body { margin: 0; padding: 0; background: #030109; overflow: hidden; }
     var e2 = el;
     setTimeout(function(){ try { if (e2) e2.pause(); } catch (e) {} }, (f * 1000) + 140);
   }
-  g.AW_SONG = { start: start, stop: stop, setMuted: setMuted };
+  g.AW_SONG = { start: start, stop: stop, setMuted: setMuted, setLevel: setLevel };
 })(typeof window !== 'undefined' ? window : globalThis);
 </script>
 <script>
@@ -1065,7 +1080,8 @@ class Component extends DCLogic {
      to a background level (song stays dominant in the mix, ambient hum sinks
      under it) and freeze the now-hidden 3D scene. Audio rides the media element
      + AudioContext, both independent of the animation loop, so cancelling the
-     rAF costs nothing but CPU. SONG_BG_MASTER (0.27) is the one knob to tune. */
+     rAF costs nothing but CPU. SONG_BG_MASTER (0.30) sets the whole bus; the
+     song alone is trimmed on top of it via AW_SONG.setLevel (SONG_BG_LEVEL). */
   enterBg() {
     if (this._bg) return;
     this._bg = true;
@@ -1074,8 +1090,11 @@ class Component extends DCLogic {
         const g = this.audio.master.gain, t = this.audio.ctx.currentTime;
         g.cancelScheduledValues(t);
         g.setValueAtTime(Math.max(0.0001, g.value), t);
-        g.linearRampToValueAtTime(this.muted ? 0.0001 : 0.27, t + 1.1);  /* SONG_BG_MASTER */
+        g.linearRampToValueAtTime(this.muted ? 0.0001 : 0.30, t + 1.1);  /* SONG_BG_MASTER */
       }
+      /* and take the SONG alone down a further 10% — the bus above carries the
+         hum and the splash sfx too, so this trim has to live on the song node. */
+      if (window.AW_SONG && window.AW_SONG.setLevel) window.AW_SONG.setLevel(0.90, 1.1);  /* SONG_BG_LEVEL */
     } catch (e) {}
     try { cancelAnimationFrame(this.raf); } catch (e) {}
   }
