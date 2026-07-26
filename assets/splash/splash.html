@@ -109,7 +109,10 @@ html, body { margin: 0; padding: 0; background: #030109; overflow: hidden; }
   <div id="aw-boot" style="position: absolute; inset: 0; z-index: 75; background: #02030a; display: flex; align-items: flex-start; justify-content: flex-start; padding: 7vh 7vw; box-sizing: border-box; font-family: 'Press Start 2P', monospace; font-size: clamp(11px, 1.8vmin, 22px); line-height: 2.3; color: #56f45c; text-shadow: 0 0 8px rgba(86, 244, 92, 0.4); white-space: pre-wrap; opacity: 1;"></div>
 
   <div style="position: absolute; right: 18px; top: 18px; z-index: 80; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
-    <div id="aw-sndbtn" role="button" aria-label="toggle sound" title="sound" style="width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; background: rgba(8, 5, 22, 0.65); border: 2px solid rgba(255, 208, 2, 0.35); cursor: pointer; user-select: none;">
+    <!-- retired, not removed: display:none + pointer-events:none, and every code
+         path into it is gated on AW_SND_UI (see the flag above the Component
+         class). Restore by flipping that flag and this display back to flex. -->
+    <div id="aw-sndbtn" role="button" aria-label="toggle sound" title="sound" style="width: 34px; height: 34px; display: none; align-items: center; justify-content: center; background: rgba(8, 5, 22, 0.65); border: 2px solid rgba(255, 208, 2, 0.35); cursor: pointer; user-select: none; pointer-events: none;">
       <svg id="aw-sndicon" width="22" height="22" viewBox="0 0 16 16" aria-hidden="true" style="pointer-events: none; display: block; shape-rendering: crispEdges; opacity: 0.55;">
         <g fill="#ffd002">
           <rect x="1" y="6" width="3" height="4"></rect>
@@ -525,6 +528,14 @@ class DCLogic {
   constructor(props){ this.props = props || {}; }
 }
 
+/* SND button retired for the game embed: the parent now gates the whole splash
+   behind its own PRESS TO START screen, so audio is unlocked by that gesture and
+   the in-splash toggle has nothing left to do. The button is hidden (inline
+   display:none on #aw-sndbtn) and every path into it is gated on this flag.
+   Nothing was deleted — toggleSound(), syncSndIcon() and the aiwars:sndtoggle
+   case are all intact; flip this to true to bring the control back. */
+const AW_SND_UI = false;
+
 class Component extends DCLogic {
   componentDidMount() {
     const $ = (id) => document.getElementById(id);
@@ -703,7 +714,7 @@ class Component extends DCLogic {
       /* closest(): the button has SVG children — a hit anywhere inside it must
          toggle sound, never fall through to the begin/skip gate. skip/replay
          buttons are retired in game-integration; snd is the only button. */
-      if (e.target.closest && e.target.closest('#aw-sndbtn')) { this.toggleSound(); return; }
+      if (AW_SND_UI && e.target.closest && e.target.closest('#aw-sndbtn')) { this.toggleSound(); return; }
       this.gesture();
     };
     addEventListener('keydown', this.onKey);
@@ -716,7 +727,9 @@ class Component extends DCLogic {
     this.onMsg = (e) => {
       const md = e && e.data;
       if (!md) return;
-      if (md.type === 'aiwars:sndtoggle') this.toggleSound();
+      /* case kept on purpose (PACS0016): the parent no longer posts sndtoggle
+         while AW_SND_UI is false, but the contract stays wired for the restore. */
+      if (md.type === 'aiwars:sndtoggle') { if (AW_SND_UI) this.toggleSound(); }
       /* parent posts this once the game console has landed: the iframe is kept
          alive (hidden) so the theme keeps playing, ducked to a bg level. */
       else if (md.type === 'aiwars:enterbg') this.enterBg();
@@ -1506,7 +1519,8 @@ class Component extends DCLogic {
 
     // ---- corner buttons: skip/replay retired in game-integration (parent iframe
     //      owns skip/begin); the old _skipShown flip re-showed them here — gone.
-    //      #aw-sndbtn stays the only visible control, top-right.
+    //      #aw-sndbtn was the last visible control, top-right — now retired too
+    //      (hidden + gated on AW_SND_UI). The splash has no visible controls.
   }
 
   renderVals() { return {}; }

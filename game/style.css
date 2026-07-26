@@ -215,6 +215,19 @@ select.pxinput, select.pxinput option{ background:#04070c; color:var(--lime); }
 .pxbtn:active, #deploybtn:not(.off):active, #chatbtns span:active,
 .emote:active, #endturn .btn:not(.off):active{ transform:translateY(1px); }
 
+/* ---- audio gate: black screen that takes the first click, so the splash's
+       AudioContext is born with a user gesture behind it and the cinematic
+       plays with sound. Sits above #splash (210); runIntro() removes it and
+       only then sets the iframe src. ---- */
+#pressstart{ position:fixed; inset:0; z-index:220; background:#000; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  font-family:"Press Start 2P",monospace; }
+#pressstart span{ color:#ffd002; font-size:clamp(13px,2.4vmin,26px); letter-spacing:.14em;
+  text-shadow:0 0 14px rgba(255,208,2,.45); animation:awBlink 1.15s steps(1,end) infinite;
+  user-select:none; }
+@keyframes awBlink{ 0%,60%{ opacity:1; } 61%,100%{ opacity:.16; } }
+@media (prefers-reduced-motion:reduce){ #pressstart span{ animation:none; } }
+
 /* ---- intro: splash -> black -> bg reveal -> console drop-lands ---- */
 #splash{ position:fixed; inset:0; z-index:210; background:#050208; }
 #splash iframe{ width:100%; height:100%; border:0; display:block; background:#050208; }

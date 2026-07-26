@@ -10,6 +10,11 @@ const NS = g.AIWARS = g.AIWARS || {};
 const KEY_LS = 'aiwars_api_key';            /* anthropic (name kept for compat) */
 const KEY_LS_OPENAI = 'aiwars_openai_key';
 const OPENAI_MODELS = ['gpt-4o', 'gpt-4o-mini', 'gpt-4.1', 'gpt-4.1-mini'];
+/* splash SND control retired: the PRESS TO START gate is the audio unlock now,
+   so the walled-mode hotspot that forwarded sndtoggle into the iframe is off.
+   Nothing deleted — the splash still handles the message (PACS0016) and mirrors
+   its state; flip this and AW_SND_UI in splash.html to bring the button back. */
+const SND_TOGGLE_UI = false;
 /* SEND/INSULT copy lives in the tone pack (uiCopy.sendLines / insultLines)
    so the round-robin cursor guarantees no early repeats */
 
@@ -811,7 +816,9 @@ function setupVisibility(){
 function runIntro(){
   const splash = $('splash'), frame = $('splashframe'), veil = $('splashveil');
   const blackout = $('introblack'), stage = $('stage');
+  const gate = $('pressstart');
   const skip = ()=>{
+    if (gate) gate.remove();
     if (splash) splash.remove();
     if (blackout) blackout.remove();
     stage.classList.remove('prelanding','landing');
@@ -886,8 +893,11 @@ function runIntro(){
        the splash's own SND button (top-right, 34px @ 18px inset) can never be
        hit. This hotspot covers that corner and forwards the click in via
        postMessage instead of begin(); everywhere else still begins. Inert
-       (pointer-events:none) in same-origin mode, where the real button works. */
-    if (sndspot){
+       (pointer-events:none) in same-origin mode, where the real button works.
+       Retired with the button itself (SND_TOGGLE_UI): left inert so the corner
+       begins like the rest of the catcher instead of being a dead zone. The
+       splash still handles aiwars:sndtoggle (PACS0016) for the restore. */
+    if (SND_TOGGLE_UI && sndspot){
       sndspot.style.pointerEvents = 'auto';
       sndspot.addEventListener('click', e=>{
         if (!e.isTrusted) return;
@@ -913,15 +923,34 @@ function runIntro(){
     if (st === 'walled' && frameLoaded){ armCatcher(); return true; }
     return false;
   };
-  tryArm();
-  frame.addEventListener('load', ()=>{ frameLoaded = true; tryArm(); });
-  const armIv = setInterval(()=>{ if (tryArm() || begun) clearInterval(armIv); }, 400);
-  /* focus may sit on the parent page — any key begins from here too */
-  window.addEventListener('keydown', function onKey(e){
-    if (!e.isTrusted) return;
-    if (!begun && armed && d.body.contains(splash)) begin();
-    if (begun) window.removeEventListener('keydown', onKey);
-  });
+  /* boot() is everything that used to run inline: load the splash, then arm.
+     It is deferred behind the PRESS TO START gate so the iframe (and its
+     AudioContext) is created only after a real gesture. */
+  const boot = ()=>{
+    const src = frame.getAttribute('data-src');
+    if (src && !frame.getAttribute('src')) frame.setAttribute('src', src);
+    tryArm();
+    frame.addEventListener('load', ()=>{ frameLoaded = true; tryArm(); });
+    const armIv = setInterval(()=>{ if (tryArm() || begun) clearInterval(armIv); }, 400);
+    /* focus may sit on the parent page — any key begins from here too */
+    window.addEventListener('keydown', function onKey(e){
+      if (!e.isTrusted) return;
+      if (!begun && armed && d.body.contains(splash)) begin();
+      if (begun) window.removeEventListener('keydown', onKey);
+    });
+  };
+  /* no gate element (older cached markup): behave exactly as before */
+  if (!gate){ boot(); return; }
+  let ungated = false;
+  const onGateKey = (e)=>{ if (e.isTrusted) ungate(); };
+  function ungate(){
+    if (ungated) return; ungated = true;
+    d.removeEventListener('keydown', onGateKey);
+    gate.remove();
+    boot();
+  }
+  gate.addEventListener('pointerdown', e=>{ if (e.isTrusted) ungate(); });
+  d.addEventListener('keydown', onGateKey);
   /* doc reachable but the splash never booted (broken asset) -> play without it.
      Walled contexts (file://) never hit this: the catcher arms as soon as the
      iframe load event fires. */

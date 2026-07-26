@@ -231,8 +231,16 @@
      game bg can fade in from black before the console drops. runIntro() in
      ui.js drives it and removes both nodes when done. -->
 <div id="introblack"></div>
+
+<!-- audio gate: the splash iframe carries data-src, NOT src, so nothing loads
+     until PRESS TO START is hit. That click is the user gesture the browser
+     wants before an AudioContext may run, so the cinematic plays with sound from
+     its first frame. Without it a cold load is autoplay-blocked and the first
+     click has to double as the unlock, which skips the intro. runIntro() sets
+     the src. -->
+<div id="pressstart"><span>PRESS TO START</span></div>
 <div id="splash">
-  <iframe id="splashframe" src="../assets/splash/splash.html" title="AI WARS"></iframe>
+  <iframe id="splashframe" data-src="../assets/splash/splash.html" title="AI WARS"></iframe>
   <div id="splashcatch"></div>
   <!-- walled-mode sound hotspot: sits over the splash's top-right SND button and
        forwards clicks into the iframe via postMessage (armed with the catcher) -->
