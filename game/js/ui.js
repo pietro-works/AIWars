@@ -854,7 +854,9 @@ function runIntro(){
           };
           stage.addEventListener('animationend', done, { once:true });
           setTimeout(done, 3100);                            /* backstop: hidden tabs delay animationend */
-        }, 1700);                                            /* held beat: bg gets read before the drop */
+        }, 2700);                                            /* held beat: bg gets read before the drop
+                                                                (2.9s fade + this = the bg sits alone for
+                                                                a beat past full opacity) */
       }, 350);
     }, 750);
   };
