@@ -940,6 +940,17 @@ function runIntro(){
       if (!begun && armed && d.body.contains(splash)) begin();
       if (begun) window.removeEventListener('keydown', onKey);
     });
+    /* doc reachable but the splash never booted (broken asset) -> play without it.
+       Walled contexts (file://) never hit this: the catcher arms as soon as the
+       iframe load event fires.
+       Must live INSIDE boot(): the 9s is measured from the splash starting to
+       load, not from page load. Behind the PRESS TO START gate those can be
+       minutes apart, and anchoring it to page load would skip the splash out
+       from under anyone who reads the gate for more than nine seconds. */
+    setTimeout(()=>{
+      clearInterval(armIv);
+      if (!begun && !armed) skip();
+    }, 9000);
   };
   /* no gate element (older cached markup): behave exactly as before */
   if (!gate){ boot(); return; }
@@ -953,13 +964,6 @@ function runIntro(){
   }
   gate.addEventListener('pointerdown', e=>{ if (e.isTrusted) ungate(); });
   d.addEventListener('keydown', onGateKey);
-  /* doc reachable but the splash never booted (broken asset) -> play without it.
-     Walled contexts (file://) never hit this: the catcher arms as soon as the
-     iframe load event fires. */
-  setTimeout(()=>{
-    clearInterval(armIv);
-    if (!begun && !armed) skip();
-  }, 9000);
 }
 
 /* ===== boot ===== */
