@@ -7,7 +7,7 @@
   const NS = g.AIWARS = g.AIWARS || {};
 
   // Mirror of game/content/tone-pack.json — placeholder, functional tone only.
-  // PACS0013 — embedded mirror of content/tone-pack.json; keep keys+copy identical (Content.get returns the path string on miss, no throw) — AGENTS.md
+  // PACS0013 — embedded mirror of content/tone-pack.json; keep keys+copy identical (Content.get returns the path string on miss, no throw) — AGENTS.md (known sites, not exhaustive)
   const DEFAULT_PACK = {
     unitFlavorNames: {
       worker: ['Worker'],

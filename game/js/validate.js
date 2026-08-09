@@ -8,11 +8,11 @@
 (function(g){
   const NS = g.AIWARS = g.AIWARS || {};
 
-  // PACS0004 — stance vocabulary; must match engine.js STANCES + CONST.UNITS stance keys — AGENTS.md
+  // PACS0004 — stance vocabulary; must match engine.js STANCES + CONST.UNITS stance keys — AGENTS.md (known sites, not exhaustive)
   const STANCES = ['default', 'attack', 'defense'];
-  // PACS0001 — consumer of CONST.UNITS types (stance + fire_policy vocab); a missing type is silently stripped — AGENTS.md
+  // PACS0001 — consumer of CONST.UNITS types (stance + fire_policy vocab); a missing type is silently stripped — AGENTS.md (known sites, not exhaustive)
   const CLASSES = ['worker', 'vehicle', 'triangle'];
-  // PACS0002 — must match engine.js CONST.BUILD_TURNS keys; a produces in only one is silently dropped — AGENTS.md
+  // PACS0002 — must match engine.js CONST.BUILD_TURNS keys; a produces in only one is silently dropped — AGENTS.md (known sites, not exhaustive)
   const BUILDABLE = ['vehicle', 'triangle'];   // workers not buildable (§7)
   const NOTE_MAX = 500;                        // sanity cap, notes are inert flavor
 
@@ -101,7 +101,7 @@
       const y = clampCoord(t[1], G.H - 1);
       if (x === null || y === null) continue;
       ordered[u.id] = true;
-      // PACS0009 — per-turn action field contract (orders/builds/fire_policy names); every producer must match or the turn silently no-ops — AGENTS.md
+      // PACS0009 — per-turn action field contract (orders/builds/fire_policy names); every producer must match or the turn silently no-ops — AGENTS.md (known sites, not exhaustive)
       orders.push({ unit: u.id, target: [x, y] });
     }
 

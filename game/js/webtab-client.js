@@ -67,7 +67,7 @@
         g.removeEventListener('message', onMsg);
         reject(failure('exhausted', 'no reply from bridge in ' + timeoutMs + 'ms'));
       }, timeoutMs);
-      // PACS0011 — page→bridge envelope; extension bridge.js/background.js read these fields BY NAME (no spread) — AGENTS.md
+      // PACS0011 — page→bridge envelope; extension bridge.js/background.js read these fields BY NAME (no spread) — AGENTS.md (known sites, not exhaustive)
       g.postMessage(Object.assign({ __aiwars_bridge: 'req', id: id }, msg), '*');
     });
   }
@@ -80,7 +80,7 @@
   }
 
   function rulesText(requestId) {
-    // PACS0010 — source the system prompt from NS.LLM._buildSystemPrompt; never inline — AGENTS.md
+    // PACS0010 — source the system prompt from NS.LLM._buildSystemPrompt; never inline — AGENTS.md (known sites, not exhaustive)
     if (!NS.LLM || typeof NS.LLM._buildSystemPrompt !== 'function') {
       throw failure('auth', 'llm-client.js must load before webtab-client.js');
     }
@@ -88,7 +88,7 @@
       NS.LLM._buildSystemPrompt(),
       '',
       'WEB SESSION PROTOCOL — this chat thread is a live match. Each of my messages is one request',
-      // PACS0012 — reply markers AIWARS_RESULT/AIWARS_END must byte-match extension/handoff.js regexes — AGENTS.md
+      // PACS0012 — reply markers AIWARS_RESULT/AIWARS_END must byte-match extension/handoff.js regexes — AGENTS.md (known sites, not exhaustive)
       '(a stance request or a turn state). For EVERY reply: first line exactly `AIWARS_RESULT <request id>`',
       '(the id is given in each message), then your single JSON object, then a final line exactly `AIWARS_END`.',
       'Nothing else before, between, or after those lines.'

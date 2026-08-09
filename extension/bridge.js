@@ -41,7 +41,7 @@
   window.addEventListener('message', ev => {
     if (ev.source !== window) return;
     const m = ev.data;
-    // PACS0011 — reads the page envelope fields by name (no spread); mirror any field rename from webtab-client.js — AGENTS.md
+    // PACS0011 — reads the page envelope fields by name (no spread); mirror any field rename from webtab-client.js — AGENTS.md (known sites, not exhaustive)
     if (!m || m.__aiwars_bridge !== 'req') return;
 
     if (m.kind === 'ping') {

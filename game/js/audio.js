@@ -65,7 +65,7 @@
 
   // Loudness tiers (Into-the-Breach law: frequent = quiet, rare = big).
   // Tier >= 2 ducks the ambient bed to 40% for ~0.5s.
-  // PACS0015 — loud cues need a TIER>=2 entry (or self-duck like meltdownSiren) or the beds never duck — AGENTS.md
+  // PACS0015 — loud cues need a TIER>=2 entry (or self-duck like meltdownSiren) or the beds never duck — AGENTS.md (known sites, not exhaustive)
   const TIER = {
     move: 0, select: 0, uiTick: 0, chat: 0, turnStart: 0, volley: 0,
     buildStart: 1, buildDone: 1, hit: 1, orderSet: 1, deployQueued: 1,
@@ -277,7 +277,7 @@
 
   // ---- Event palette — everything diatonic to C major / A minor. ----------
   // Interval law: ascending = positive, descending = loss, minor 2nd = error.
-  // PACS0014 — every sfx()/play() event needs a key here or it silently no-ops (permanent silence) — AGENTS.md
+  // PACS0014 — every sfx()/play() event needs a key here or it silently no-ops (permanent silence) — AGENTS.md (known sites, not exhaustive)
   const SOUNDS = {
     // near-inaudible tick, +2st chirp (elevated original)
     move: function(){

@@ -738,7 +738,7 @@ class Component extends DCLogic {
 
     /* cross-frame protocol: in walled (file://) mode the parent's top-right
        hotspot posts a toggle request; we always answer with the new state */
-    // PACS0016 — handle every aiwars:* message ui.js posts here; a missing case silently no-ops — AGENTS.md
+    // PACS0016 — handle every aiwars:* message ui.js posts here; a missing case silently no-ops — AGENTS.md (known sites, not exhaustive)
     this.onMsg = (e) => {
       const md = e && e.data;
       if (!md) return;

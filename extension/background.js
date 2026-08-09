@@ -144,7 +144,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   (async () => {
     const tabId = await ensureSessionTab(gameTabId, msg.side, msg.bot, msg.sessionKey);
     await dispatchToTab(tabId, {
-      // PACS0011 — forwards page-envelope fields by name; mirror any rename from webtab-client.js — AGENTS.md
+      // PACS0011 — forwards page-envelope fields by name; mirror any rename from webtab-client.js — AGENTS.md (known sites, not exhaustive)
       requestId: msg.requestId,
       rules: msg.rules,
       body: msg.body,

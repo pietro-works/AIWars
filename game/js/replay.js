@@ -3,9 +3,9 @@
 (function(g){
   const NS = g.AIWARS = g.AIWARS || {};
 
-  // PACS0020 — bump on any resultingState leaf-schema change; importJSON checks only this string + container existence — AGENTS.md
+  // PACS0020 — bump on any resultingState leaf-schema change; importJSON checks only this string + container existence — AGENTS.md (known sites, not exhaustive)
   const SPEC_VERSION = '1.0';
-  // PACS0019 — every provider kind ui.js produces must be here or normPlayer silently coerces it to "bot" — AGENTS.md
+  // PACS0019 — every provider kind ui.js produces must be here or normPlayer silently coerces it to "bot" — AGENTS.md (known sites, not exhaustive)
   const KINDS = ['llm', 'bot', 'human', 'ollama', 'openai', 'webtab'];
 
   function uuid4(){

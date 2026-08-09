@@ -62,7 +62,7 @@
       throw failure('auth', 'AIWARS.CONST is not loaded — engine.js must be loaded before any LLM call');
     }
 
-    // PACS0004 — stance vocabulary drives the prompt; must match engine.js STANCES — AGENTS.md
+    // PACS0004 — stance vocabulary drives the prompt; must match engine.js STANCES — AGENTS.md (known sites, not exhaustive)
     const stanceNames = ['default', 'attack', 'defense'];
     const unitTypes = Object.keys(C.UNITS);
 
@@ -138,7 +138,7 @@
       '{"worker":"default","vehicle":"attack","triangle":"defense"}',
       'where each value is one of "default", "attack", "defense" (example values shown).',
       '2) TURN ORDERS — the user message is the current turn state JSON (fields: turn, you_are, your_core_hp, enemy_core_hp, your_units, visible_enemy_units, grid, your_stance_doctrine). visible_enemy_units is all enemy units (full visibility). Respond with exactly this shape:',
-      // PACS0009 — this example IS the action field contract the model must emit; must match validate.js field names — AGENTS.md
+      // PACS0009 — this example IS the action field contract the model must emit; must match validate.js field names — AGENTS.md (known sites, not exhaustive)
       '{"orders":[{"unit":"A_v1","target":[12,7]}],"builds":[{"worker":"A_w1","produces":"vehicle"}],"fire_policy":{"vehicle":{"mode":"focus","target":"B_t2"},"triangle":{"mode":"spread"}},"note":"optional short comment"}',
       '- orders: destination tiles for your own units; omit a unit to hold. target is [x,y] integers on the grid.',
       '- builds: only your own idle, non-building workers; produces is "vehicle" or "triangle".',
@@ -341,7 +341,7 @@
     requestStance: requestStance,
     requestOrders: requestOrders,
     // exposed for headless tests only; not part of the gameplay contract
-    // PACS0010 — every provider client sources its system prompt from here; never inline a ruleset — AGENTS.md
+    // PACS0010 — every provider client sources its system prompt from here; never inline a ruleset — AGENTS.md (known sites, not exhaustive)
     _buildSystemPrompt: buildSystemPrompt
   };
 

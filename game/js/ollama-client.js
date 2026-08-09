@@ -38,7 +38,7 @@
   }
 
   function systemPrompt() {
-    // PACS0010 — defer to NS.LLM._buildSystemPrompt; never inline a ruleset — AGENTS.md
+    // PACS0010 — defer to NS.LLM._buildSystemPrompt; never inline a ruleset — AGENTS.md (known sites, not exhaustive)
     if (NS.LLM && typeof NS.LLM._buildSystemPrompt === 'function') return NS.LLM._buildSystemPrompt();
     throw failure('auth', 'llm-client.js must load before ollama-client.js (shared system prompt)');
   }

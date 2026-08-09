@@ -2,7 +2,7 @@
  * AI WARS — engine.js
  * AIWARS.CONST (single source of constants) + AIWARS.Engine (pure simulation core).
  * Per game/CONTRACTS.md §1-§3. Pure: no DOM, no canvas, no network, no Math.random.
- // PACS0005 — no Math.random/Date.now/wall-clock in the sim path; tie-breaks stay fixed-order — AGENTS.md
+ // PACS0005 — no Math.random/Date.now/wall-clock in the sim path; tie-breaks stay fixed-order — AGENTS.md (known sites, not exhaustive)
  * Every public function deep-clones input state; determinism is a hard requirement.
  */
 (function(g){
@@ -14,12 +14,12 @@
     CORE_POS: { A: [1, 1], B: [22, 12] },
     TURN_LIMIT: 40,
     CORE: { hp: 200, attack: 5, range: 2 },
-    // PACS0007 — spawn cadence; ui.js sysnote "ONE EVERY 4 TURNS" hardcodes this literal — AGENTS.md
+    // PACS0007 — spawn cadence; ui.js sysnote "ONE EVERY 4 TURNS" hardcodes this literal — AGENTS.md (known sites, not exhaustive)
     CORE_WORKER_EVERY: 4,               // spawn turns 4,8,12,...,36,40
     // 2026-07-04 balance pass: movement +50%, unit attacks +25% (round half up).
     // 2026-07-21 balance pass: flat +3 move on every unit/stance (worker 5,
     // vehicle 6, triangle 9). hp/atk/range untouched.
-    // PACS0001 — unit types live here; a new type needs matching edits at every keyed-by-type site (render dispatch, validate CLASSES/BUILDABLE, engine TYPES/TYPE_LETTER, bots, atlas.js, index.html cards) — AGENTS.md
+    // PACS0001 — unit types live here; a new type needs matching edits at every keyed-by-type site (render dispatch, validate CLASSES/BUILDABLE, engine TYPES/TYPE_LETTER, bots, atlas.js, index.html cards) — AGENTS.md (known sites, not exhaustive)
     UNITS: {
       worker:   { default:{hp:20,atk:0,move:5,range:0}, attack:{hp:10,atk:0,move:5,range:0}, defense:{hp:30,atk:0,move:5,range:0} },
       vehicle:  { default:{hp:60,atk:10,move:6,range:1}, attack:{hp:30,atk:15,move:6,range:1}, defense:{hp:90,atk:5,move:6,range:1} },
@@ -28,7 +28,7 @@
     TRIANGLE_FOCUS_TARGETS: 3,          // triangles focus-fire up to 3 enemies at once
     STAGNATION: { afterTurn: 20, dmg: 20 },  // coward tax: quiet full turn in (20, MELTDOWN.fromTurn) -> both cores bleed
     MELTDOWN: { fromTurn: 30, dmg: 20 },     // datacenter meltdown: turns 30-40, both cores -20 EVERY turn, unconditional
-    // PACS0002 buildable set must match validate.js BUILDABLE; PACS0003 these counts are copied into index.html deploy cards — AGENTS.md
+    // PACS0002 buildable set must match validate.js BUILDABLE; PACS0003 these counts are copied into index.html deploy cards — AGENTS.md (known sites, not exhaustive)
     BUILD_TURNS: { vehicle: 3, triangle: 2 },  // workers not buildable
     START_WORKERS: 2,
     LLM_TIMEOUT_MS: 60000,
@@ -47,9 +47,9 @@
   }
   CONST.CORE_TILES = { A: coreBlock(CONST.CORE_POS.A), B: coreBlock(CONST.CORE_POS.B) };
 
-  // PACS0004 — stance vocabulary; must match validate/bots/llm-prompt/ui dropdown + CONST.UNITS stance keys — AGENTS.md
+  // PACS0004 — stance vocabulary; must match validate/bots/llm-prompt/ui dropdown + CONST.UNITS stance keys — AGENTS.md (known sites, not exhaustive)
   const STANCES = ['default', 'attack', 'defense'];
-  // PACS0001 — mirror of CONST.UNITS type names (drives TYPES + TYPE_LETTER); keep in lockstep — AGENTS.md
+  // PACS0001 — mirror of CONST.UNITS type names (drives TYPES + TYPE_LETTER); keep in lockstep — AGENTS.md (known sites, not exhaustive)
   const TYPES = ['worker', 'vehicle', 'triangle'];
   const TYPE_LETTER = { worker: 'w', vehicle: 'v', triangle: 't' };
 
@@ -92,7 +92,7 @@
 
   function mintId(state, side, type){
     state.counters[side][type] += 1;
-    // PACS0006 — id = side char0 + type letter; render.js recovers side via charAt(0) (build-spawn log has no side field) — AGENTS.md
+    // PACS0006 — id = side char0 + type letter; render.js recovers side via charAt(0) (build-spawn log has no side field) — AGENTS.md (known sites, not exhaustive)
     return side + '_' + TYPE_LETTER[type] + state.counters[side][type];
   }
 
@@ -392,7 +392,7 @@
       for (const e of s.units){
         if (e.side !== enemySide || minChebToCore(e.pos, cs) > CONST.CORE.range) continue;
         unitDmg[e.id] = (unitDmg[e.id] || 0) + CONST.CORE.attack;
-        // PACS0008 — core attacker id "<side>_core"; render.js coreSideOf regex must match it or core FX silently vanish — AGENTS.md
+        // PACS0008 — core attacker id "<side>_core"; render.js coreSideOf regex must match it or core FX silently vanish — AGENTS.md (known sites, not exhaustive)
         log.combatEvents.push({ attacker: cs + '_core', target: e.id, dmg: CONST.CORE.attack });
       }
     }

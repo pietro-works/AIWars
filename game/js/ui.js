@@ -383,7 +383,7 @@ function boardClick(ev){
 }
 function cardClick(el){
   if (humanCtx && el.classList.contains('disabled') && el.dataset.produce === 'worker'){
-    // PACS0007 — hardcodes engine CONST.CORE_WORKER_EVERY cadence; update this literal if the const changes — AGENTS.md
+    // PACS0007 — hardcodes engine CONST.CORE_WORKER_EVERY cadence; update this literal if the const changes — AGENTS.md (known sites, not exhaustive)
     sysnote('WORKERS ARE MINTED BY YOUR CORE — ONE EVERY 4 TURNS');
     sfx('invalid');
     return;
@@ -472,7 +472,7 @@ async function runMatch(myGen){
 }
 
 /* ===== stance resolution + match start ===== */
-// PACS0019 — provider kinds here must all appear in replay.js KINDS or normPlayer silently records them as "bot" — AGENTS.md
+// PACS0019 — provider kinds here must all appear in replay.js KINDS or normPlayer silently records them as "bot" — AGENTS.md (known sites, not exhaustive)
 const KIND_PREFIXES = [['llm:','llm'], ['ollama:','ollama'], ['openai:','openai'], ['webtab:','webtab']];
 function readSetupSide(side){
   const kindVal = $('kind'+side).value;
@@ -615,7 +615,7 @@ async function startMatchInner(){
   NS.Render.renderState(state);
   sfx('matchStart');   /* "systems online" power-up sweep */
   amb(true);           /* ambient bed runs for the whole match, off at result */
-  // PACS0018 — amb/mus started here must be stopped on every match/replay exit (result/no-result/catch) or the beds run forever — AGENTS.md
+  // PACS0018 — amb/mus started here must be stopped on every match/replay exit (result/no-result/catch) or the beds run forever — AGENTS.md (known sites, not exhaustive)
   mus(true);           /* in-game track rides the same lifecycle as the bed */
   runMatch(gen);
   return true;
@@ -767,7 +767,7 @@ async function fillSetup(){
     ['worker','vehicle','triangle'].forEach(t=>{
       const st = $('stance'+side+t);
       st.innerHTML = '';
-      // PACS0004 — stance dropdown; must match engine.js STANCES — AGENTS.md
+      // PACS0004 — stance dropdown; must match engine.js STANCES — AGENTS.md (known sites, not exhaustive)
       ['default','attack','defense'].forEach(v=>{
         const o = d.createElement('option');
         o.value = v; o.textContent = v.toUpperCase();
@@ -839,7 +839,7 @@ function runIntro(){
          (mirror of the aiwars:sndtoggle cross-iframe protocol.) */
       splash.style.pointerEvents = 'none';
       splash.style.opacity = '0';                            /* pure black now (introblack covers) */
-      // PACS0016 — every aiwars:* message posted to the splash needs a matching case in splash.html onMsg — AGENTS.md
+      // PACS0016 — every aiwars:* message posted to the splash needs a matching case in splash.html onMsg — AGENTS.md (known sites, not exhaustive)
       try{ frame.contentWindow.postMessage({ type:'aiwars:enterbg' }, '*'); }catch(e){}
       setTimeout(()=>{
         blackout.style.opacity = '0';                        /* 2. bg fades in slowly (2.9s) */
